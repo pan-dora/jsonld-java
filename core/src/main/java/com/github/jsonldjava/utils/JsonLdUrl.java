@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.utils;
 
 import java.net.URI;
@@ -8,31 +36,39 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * JsonLdUrl.
+ *
+ * @author @tristan
+ * @author Peter Ansell p_ansell@yahoo.com
+ */
 public class JsonLdUrl {
 
-    public String href = "";
-    public String protocol = "";
-    public String host = "";
-    public String auth = "";
-    public String user = "";
-    public String password = "";
-    public String hostname = "";
-    public String port = "";
+    private String href = "";
+    private String protocol = "";
+    private String host = "";
+    private String auth = "";
+    private String user = "";
+    private String password = "";
+    private String hostname = "";
+    private String port = "";
     public String relative = "";
-    public String path = "";
-    public String directory = "";
+    String path = "";
+    private String directory = "";
     public String file = "";
     public String query = "";
-    public String hash = "";
+    private String hash = "";
 
     // things not populated by the regex (NOTE: i don't think it matters if
     // these are null or "" to start with)
-    public String pathname = null;
-    public String normalizedPath = null;
-    public String authority = null;
+    private String pathname = null;
+    private String normalizedPath = null;
+    private String authority = null;
 
     private static Pattern parser = Pattern.compile(
-            "^(?:([^:\\/?#]+):)?(?:\\/\\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\\/?#]*)(?::(\\d*))?))?((((?:[^?#\\/]*\\/)*)([^?#]*))(?:\\?([^#]*))?(?:#(.*))?)");
+            "^(?:([^:\\/?#]+):)?(?:\\/\\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\\/?#]*)(?::(\\d*))"
+                    + "?))?((("
+                    + "(?:[^?#\\/]*\\/)*)([^?#]*))(?:\\?([^#]*))?(?:#(.*))?)");
 
     public static JsonLdUrl parse(String url) {
         final JsonLdUrl rval = new JsonLdUrl();
@@ -105,27 +141,25 @@ public class JsonLdUrl {
     /**
      * Removes dot segments from a JsonLdUrl path.
      *
-     * @param path
-     *            the path to remove dot segments from.
-     * @param hasAuthority
-     *            true if the JsonLdUrl has an authority, false if not.
+     * @param path         the path to remove dot segments from.
+     * @param hasAuthority true if the JsonLdUrl has an authority, false if not.
      * @return The URL without the dot segments
      */
-    public static String removeDotSegments(String path, boolean hasAuthority) {
-        String rval = "";
+    private static String removeDotSegments(String path, boolean hasAuthority) {
+        StringBuilder rval = new StringBuilder();
 
         if (path.indexOf("/") == 0) {
-            rval = "/";
+            rval = new StringBuilder("/");
         }
 
         // RFC 3986 5.2.4 (reworked)
-        final List<String> input = new ArrayList<String>(Arrays.asList(path.split("/")));
+        final List<String> input = new ArrayList<>(Arrays.asList(path.split("/")));
         if (path.endsWith("/")) {
             // javascript .split includes a blank entry if the string ends with
             // the delimiter, java .split does not so we need to add it manually
             input.add("");
         }
-        final List<String> output = new ArrayList<String>();
+        final List<String> output = new ArrayList<>();
         for (int i = 0; i < input.size(); i++) {
             if (".".equals(input.get(i)) || ("".equals(input.get(i)) && input.size() - i > 1)) {
                 // input.remove(0);
@@ -150,12 +184,12 @@ public class JsonLdUrl {
         }
 
         if (output.size() > 0) {
-            rval += output.get(0);
+            rval.append(output.get(0));
             for (int i = 1; i < output.size(); i++) {
-                rval += "/" + output.get(i);
+                rval.append("/").append(output.get(i));
             }
         }
-        return rval;
+        return rval.toString();
     }
 
     public static String removeBase(Object baseobj, String iri) {
@@ -189,12 +223,12 @@ public class JsonLdUrl {
         final JsonLdUrl rel = JsonLdUrl.parse(iri.substring(root.length()));
 
         // remove path segments that match
-        final List<String> baseSegments = new ArrayList<String>(
+        final List<String> baseSegments = new ArrayList<>(
                 Arrays.asList(base.normalizedPath.split("/")));
         if (base.normalizedPath.endsWith("/")) {
             baseSegments.add("");
         }
-        final List<String> iriSegments = new ArrayList<String>(
+        final List<String> iriSegments = new ArrayList<>(
                 Arrays.asList(rel.normalizedPath.split("/")));
         if (rel.normalizedPath.endsWith("/")) {
             iriSegments.add("");
@@ -213,7 +247,7 @@ public class JsonLdUrl {
         }
 
         // use '../' for each non-matching base segment
-        String rval = "";
+        StringBuilder rval = new StringBuilder();
         if (baseSegments.size() > 0) {
             // don't count the last segment if it isn't a path (doesn't end in
             // '/')
@@ -222,31 +256,31 @@ public class JsonLdUrl {
                 baseSegments.remove(baseSegments.size() - 1);
             }
             for (int i = 0; i < baseSegments.size(); ++i) {
-                rval += "../";
+                rval.append("../");
             }
         }
 
         // prepend remaining segments
         if (iriSegments.size() > 0) {
-            rval += iriSegments.get(0);
+            rval.append(iriSegments.get(0));
         }
         for (int i = 1; i < iriSegments.size(); i++) {
-            rval += "/" + iriSegments.get(i);
+            rval.append("/").append(iriSegments.get(i));
         }
 
         // add query and hash
         if (!"".equals(rel.query)) {
-            rval += "?" + rel.query;
+            rval.append("?").append(rel.query);
         }
         if (!"".equals(rel.hash)) {
-            rval += rel.hash;
+            rval.append(rel.hash);
         }
 
-        if ("".equals(rval)) {
-            rval = "./";
+        if ("".equals(rval.toString())) {
+            rval = new StringBuilder("./");
         }
 
-        return rval;
+        return rval.toString();
     }
 
     public static String resolve(String baseUri, String pathToResolve) {
@@ -287,12 +321,11 @@ public class JsonLdUrl {
     /**
      * Parses the authority for the pre-parsed given JsonLdUrl.
      *
-     * @param parsed
-     *            the pre-parsed JsonLdUrl.
+     * @param parsed the pre-parsed JsonLdUrl.
      */
     private static void parseAuthority(JsonLdUrl parsed) {
         // parse authority for unparsed relative network-path reference
-        if (parsed.href.indexOf(":") == -1 && parsed.href.indexOf("//") == 0
+        if (!parsed.href.contains(":") && parsed.href.indexOf("//") == 0
                 && "".equals(parsed.host)) {
             // must parse authority from pathname
             parsed.pathname = parsed.pathname.substring(2);

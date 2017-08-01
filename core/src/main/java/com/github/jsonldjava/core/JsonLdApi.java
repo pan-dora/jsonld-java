@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.core;
 
 import static com.github.jsonldjava.core.JsonLdConsts.RDF_FIRST;
@@ -7,6 +35,9 @@ import static com.github.jsonldjava.core.JsonLdConsts.RDF_REST;
 import static com.github.jsonldjava.core.JsonLdConsts.RDF_TYPE;
 import static com.github.jsonldjava.core.JsonLdUtils.isKeyword;
 import static com.github.jsonldjava.utils.Obj.newMap;
+
+import com.github.jsonldjava.core.JsonLdError.Error;
+import com.github.jsonldjava.utils.Obj;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,8 +52,7 @@ import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.jsonldjava.core.JsonLdError.Error;
-import com.github.jsonldjava.utils.Obj;
+
 
 /**
  * A container object to maintain state relating to JsonLdOptions and the
@@ -51,15 +81,12 @@ public class JsonLdApi {
      * Constructs a JsonLdApi object using the given object as the initial
      * JSON-LD object, and the given JsonLdOptions.
      *
-     * @param input
-     *            The initial JSON-LD object.
-     * @param opts
-     *            The JsonLdOptions to use.
-     * @throws JsonLdError
-     *             If there is an error initializing using the object and
-     *             options.
+     * @param input The initial JSON-LD object.
+     * @param opts  The JsonLdOptions to use.
+     * @throws JsonLdError If there is an error initializing using the object and
+     *                     options.
      */
-    public JsonLdApi(Object input, JsonLdOptions opts) throws JsonLdError {
+    JsonLdApi(Object input, JsonLdOptions opts) throws JsonLdError {
         this(opts);
         initialize(input, null);
     }
@@ -68,15 +95,11 @@ public class JsonLdApi {
      * Constructs a JsonLdApi object using the given object as the initial
      * JSON-LD object, the given context, and the given JsonLdOptions.
      *
-     * @param input
-     *            The initial JSON-LD object.
-     * @param context
-     *            The initial context.
-     * @param opts
-     *            The JsonLdOptions to use.
-     * @throws JsonLdError
-     *             If there is an error initializing using the object and
-     *             options.
+     * @param input   The initial JSON-LD object.
+     * @param context The initial context.
+     * @param opts    The JsonLdOptions to use.
+     * @throws JsonLdError If there is an error initializing using the object and
+     *                     options.
      */
     public JsonLdApi(Object input, Object context, JsonLdOptions opts) throws JsonLdError {
         this(opts);
@@ -89,10 +112,9 @@ public class JsonLdApi {
      * If the JsonLdOptions parameter is null, then the default options are
      * used.
      *
-     * @param opts
-     *            The JsonLdOptions to use.
+     * @param opts The JsonLdOptions to use.
      */
-    public JsonLdApi(JsonLdOptions opts) {
+    JsonLdApi(JsonLdOptions opts) {
         if (opts == null) {
             opts = new JsonLdOptions("");
         } else {
@@ -105,15 +127,12 @@ public class JsonLdApi {
      * {@link JsonLdUtils#clone(Object)}, and by parsing the context using
      * {@link Context#parse(Object)}.
      *
-     * @param input
-     *            The initial object, which is to be cloned and used in
-     *            operations.
-     * @param context
-     *            The context object, which is to be parsed and used in
-     *            operations.
-     * @throws JsonLdError
-     *             If there was an error cloning the object, or in parsing the
-     *             context.
+     * @param input   The initial object, which is to be cloned and used in
+     *                operations.
+     * @param context The context object, which is to be parsed and used in
+     *                operations.
+     * @throws JsonLdError If there was an error cloning the object, or in parsing the
+     *                     context.
      */
     private void initialize(Object input, Object context) throws JsonLdError {
         if (input instanceof List || input instanceof Map) {
@@ -126,38 +145,25 @@ public class JsonLdApi {
         }
     }
 
-    /***
-     * ____ _ _ _ _ _ _ / ___|___ _ __ ___ _ __ __ _ ___| |_ / \ | | __ _ ___ _
-     * __(_) |_| |__ _ __ ___ | | / _ \| '_ ` _ \| '_ \ / _` |/ __| __| / _ \ |
-     * |/ _` |/ _ \| '__| | __| '_ \| '_ ` _ \ | |__| (_) | | | | | | |_) | (_|
-     * | (__| |_ / ___ \| | (_| | (_) | | | | |_| | | | | | | | | \____\___/|_|
-     * |_| |_| .__/ \__,_|\___|\__| /_/ \_\_|\__, |\___/|_| |_|\__|_| |_|_| |_|
-     * |_| |_| |___/
-     */
-
     /**
      * Compaction Algorithm
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#compaction-algorithm
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#compaction-algorithm
      *
-     * @param activeCtx
-     *            The Active Context
-     * @param activeProperty
-     *            The Active Property
-     * @param element
-     *            The current element
-     * @param compactArrays
-     *            True to compact arrays.
+     * @param activeCtx      The Active Context
+     * @param activeProperty The Active Property
+     * @param element        The current element
+     * @param compactArrays  True to compact arrays.
      * @return The compacted JSON-LD object.
-     * @throws JsonLdError
-     *             If there was an error during compaction.
+     * @throws JsonLdError If there was an error during compaction.
      */
+    @SuppressWarnings("unchecked")
     public Object compact(Context activeCtx, String activeProperty, Object element,
-            boolean compactArrays) throws JsonLdError {
+                          boolean compactArrays) throws JsonLdError {
         // 2)
         if (element instanceof List) {
             // 2.1)
-            final List<Object> result = new ArrayList<Object>();
+            final List<Object> result = new ArrayList<>();
             // 2.2)
             for (final Object item : (List<Object>) element) {
                 // 2.2.1)
@@ -195,7 +201,7 @@ public class JsonLdApi {
             // 6)
             final Map<String, Object> result = newMap();
             // 7)
-            final List<String> keys = new ArrayList<String>(elem.keySet());
+            final List<String> keys = new ArrayList<>(elem.keySet());
             Collections.sort(keys);
             for (final String expandedProperty : keys) {
                 final Object expandedValue = elem.get(expandedProperty);
@@ -212,7 +218,7 @@ public class JsonLdApi {
                     }
                     // 7.1.2)
                     else {
-                        final List<String> types = new ArrayList<String>();
+                        final List<String> types = new ArrayList<>();
                         // 7.1.2.2)
                         for (final String expandedType : (List<String>) expandedValue) {
                             types.add(activeCtx.compactIri(expandedType, true));
@@ -245,14 +251,14 @@ public class JsonLdApi {
                     // 7.2.2)
                     // Note: Must create a new set to avoid modifying the set we
                     // are iterating over
-                    for (final String property : new HashSet<String>(compactedValue.keySet())) {
+                    for (final String property : new HashSet<>(compactedValue.keySet())) {
                         final Object value = compactedValue.get(property);
                         // 7.2.2.1)
                         if (activeCtx.isReverseProperty(property)) {
                             // 7.2.2.1.1)
                             if ((JsonLdConsts.SET.equals(activeCtx.getContainer(property))
                                     || !compactArrays) && !(value instanceof List)) {
-                                final List<Object> tmp = new ArrayList<Object>();
+                                final List<Object> tmp = new ArrayList<>();
                                 tmp.add(value);
                                 result.put(property, tmp);
                             }
@@ -263,7 +269,7 @@ public class JsonLdApi {
                             // 7.2.2.1.3)
                             else {
                                 if (!(result.get(property) instanceof List)) {
-                                    final List<Object> tmp = new ArrayList<Object>();
+                                    final List<Object> tmp = new ArrayList<>();
                                     tmp.add(result.put(property, tmp));
                                 }
                                 if (value instanceof List) {
@@ -314,11 +320,11 @@ public class JsonLdApi {
                             expandedValue, true, insideReverse);
                     // 7.5.2)
                     if (!result.containsKey(itemActiveProperty)) {
-                        result.put(itemActiveProperty, new ArrayList<Object>());
+                        result.put(itemActiveProperty, new ArrayList<>());
                     } else {
                         final Object value = result.get(itemActiveProperty);
                         if (!(value instanceof List)) {
-                            final List<Object> tmp = new ArrayList<Object>();
+                            final List<Object> tmp = new ArrayList<>();
                             tmp.add(value);
                             result.put(itemActiveProperty, tmp);
                         }
@@ -349,7 +355,7 @@ public class JsonLdApi {
                     if (isList) {
                         // 7.6.4.1)
                         if (!(compactedItem instanceof List)) {
-                            final List<Object> tmp = new ArrayList<Object>();
+                            final List<Object> tmp = new ArrayList<>();
                             tmp.add(compactedItem);
                             compactedItem = tmp;
                         }
@@ -376,7 +382,9 @@ public class JsonLdApi {
                         // 7.6.4.3)
                         else if (result.containsKey(itemActiveProperty)) {
                             throw new JsonLdError(Error.COMPACTION_TO_LIST_OF_LISTS,
-                                    "There cannot be two list objects associated with an active property that has a container mapping");
+                                    "There cannot be two list objects associated with an active "
+                                            + "property that has a "
+                                            + "container mapping");
                         }
                     }
 
@@ -395,7 +403,7 @@ public class JsonLdApi {
                         // 7.6.5.2)
                         if (JsonLdConsts.LANGUAGE.equals(container) && (compactedItem instanceof Map
                                 && ((Map<String, Object>) compactedItem)
-                                        .containsKey(JsonLdConsts.VALUE))) {
+                                .containsKey(JsonLdConsts.VALUE))) {
                             compactedItem = ((Map<String, Object>) compactedItem)
                                     .get(JsonLdConsts.VALUE);
                         }
@@ -409,7 +417,7 @@ public class JsonLdApi {
                         } else {
                             List<Object> tmp;
                             if (!(mapObject.get(mapKey) instanceof List)) {
-                                tmp = new ArrayList<Object>();
+                                tmp = new ArrayList<>();
                                 tmp.add(mapObject.put(mapKey, tmp));
                             } else {
                                 tmp = (List<Object>) mapObject.get(mapKey);
@@ -426,7 +434,7 @@ public class JsonLdApi {
                                 || JsonLdConsts.GRAPH.equals(expandedProperty))
                                 && (!(compactedItem instanceof List));
                         if (check) {
-                            final List<Object> tmp = new ArrayList<Object>();
+                            final List<Object> tmp = new ArrayList<>();
                             tmp.add(compactedItem);
                             compactedItem = tmp;
                         }
@@ -435,7 +443,7 @@ public class JsonLdApi {
                             result.put(itemActiveProperty, compactedItem);
                         } else {
                             if (!(result.get(itemActiveProperty) instanceof List)) {
-                                final List<Object> tmp = new ArrayList<Object>();
+                                final List<Object> tmp = new ArrayList<>();
                                 tmp.add(result.put(itemActiveProperty, tmp));
                             }
                             if (compactedItem instanceof List) {
@@ -460,46 +468,31 @@ public class JsonLdApi {
     /**
      * Compaction Algorithm
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#compaction-algorithm
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#compaction-algorithm
      *
-     * @param activeCtx
-     *            The Active Context
-     * @param activeProperty
-     *            The Active Property
-     * @param element
-     *            The current element
+     * @param activeCtx      The Active Context
+     * @param activeProperty The Active Property
+     * @param element        The current element
      * @return The compacted JSON-LD object.
-     * @throws JsonLdError
-     *             If there was an error during compaction.
+     * @throws JsonLdError If there was an error during compaction.
      */
     public Object compact(Context activeCtx, String activeProperty, Object element)
             throws JsonLdError {
         return compact(activeCtx, activeProperty, element, JsonLdOptions.DEFAULT_COMPACT_ARRAYS);
     }
 
-    /***
-     * _____ _ _ _ _ _ _ | ____|_ ___ __ __ _ _ __ __| | / \ | | __ _ ___ _
-     * __(_) |_| |__ _ __ ___ | _| \ \/ / '_ \ / _` | '_ \ / _` | / _ \ | |/ _`
-     * |/ _ \| '__| | __| '_ \| '_ ` _ \ | |___ > <| |_) | (_| | | | | (_| | /
-     * ___ \| | (_| | (_) | | | | |_| | | | | | | | | |_____/_/\_\ .__/ \__,_|_|
-     * |_|\__,_| /_/ \_\_|\__, |\___/|_| |_|\__|_| |_|_| |_| |_| |_| |___/
-     */
-
     /**
      * Expansion Algorithm
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#expansion-algorithm
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#expansion-algorithm
      *
-     * @param activeCtx
-     *            The Active Context
-     * @param activeProperty
-     *            The Active Property
-     * @param element
-     *            The current element
+     * @param activeCtx      The Active Context
+     * @param activeProperty The Active Property
+     * @param element        The current element
      * @return The expanded JSON-LD object.
-     * @throws JsonLdError
-     *             If there was an error during expansion.
+     * @throws JsonLdError If there was an error during expansion.
      */
+    @SuppressWarnings("unchecked")
     public Object expand(Context activeCtx, String activeProperty, Object element)
             throws JsonLdError {
         // 1)
@@ -510,7 +503,7 @@ public class JsonLdApi {
         // 3)
         if (element instanceof List) {
             // 3.1)
-            final List<Object> result = new ArrayList<Object>();
+            final List<Object> result = new ArrayList<>();
             // 3.2)
             for (final Object item : (List<Object>) element) {
                 // 3.2.1)
@@ -519,13 +512,13 @@ public class JsonLdApi {
                 if ((JsonLdConsts.LIST.equals(activeProperty)
                         || JsonLdConsts.LIST.equals(activeCtx.getContainer(activeProperty)))
                         && (v instanceof List || (v instanceof Map
-                                && ((Map<String, Object>) v).containsKey(JsonLdConsts.LIST)))) {
+                        && ((Map<String, Object>) v).containsKey(JsonLdConsts.LIST)))) {
                     throw new JsonLdError(Error.LIST_OF_LISTS, "lists of lists are not permitted.");
                 }
                 // 3.2.3)
                 else if (v != null) {
                     if (v instanceof List) {
-                        result.addAll((Collection<? extends Object>) v);
+                        result.addAll((Collection<?>) v);
                     } else {
                         result.add(v);
                     }
@@ -545,7 +538,7 @@ public class JsonLdApi {
             // 6)
             Map<String, Object> result = newMap();
             // 7)
-            final List<String> keys = new ArrayList<String>(elem.keySet());
+            final List<String> keys = new ArrayList<>(elem.keySet());
             Collections.sort(keys);
             for (final String key : keys) {
                 final Object value = elem.get(key);
@@ -653,7 +646,7 @@ public class JsonLdApi {
 
                         // NOTE: step not in the spec yet
                         if (!(expandedValue instanceof List)) {
-                            final List<Object> tmp = new ArrayList<Object>();
+                            final List<Object> tmp = new ArrayList<>();
                             tmp.add(expandedValue);
                             expandedValue = tmp;
                         }
@@ -683,13 +676,15 @@ public class JsonLdApi {
                         // 7.4.11.2)
                         if (((Map<String, Object>) expandedValue)
                                 .containsKey(JsonLdConsts.REVERSE)) {
-                            final Map<String, Object> reverse = (Map<String, Object>) ((Map<String, Object>) expandedValue)
+                            final Map<String, Object> reverse = (Map<String, Object>) (
+                                    (Map<String, Object>)
+                                    expandedValue)
                                     .get(JsonLdConsts.REVERSE);
                             for (final String property : reverse.keySet()) {
                                 final Object item = reverse.get(property);
                                 // 7.4.11.2.1)
                                 if (!result.containsKey(property)) {
-                                    result.put(property, new ArrayList<Object>());
+                                    result.put(property, new ArrayList<>());
                                 }
                                 // 7.4.11.2.2)
                                 if (item instanceof List) {
@@ -703,7 +698,7 @@ public class JsonLdApi {
                         // 7.4.11.3)
                         if (((Map<String, Object>) expandedValue)
                                 .size() > (((Map<String, Object>) expandedValue)
-                                        .containsKey(JsonLdConsts.REVERSE) ? 1 : 0)) {
+                                .containsKey(JsonLdConsts.REVERSE) ? 1 : 0)) {
                             // 7.4.11.3.1)
                             if (!result.containsKey(JsonLdConsts.REVERSE)) {
                                 result.put(JsonLdConsts.REVERSE, newMap());
@@ -718,14 +713,15 @@ public class JsonLdApi {
                                     continue;
                                 }
                                 // 7.4.11.3.3.1)
-                                final List<Object> items = (List<Object>) ((Map<String, Object>) expandedValue)
+                                final List<Object> items = (List<Object>) ((Map<String, Object>)
+                                        expandedValue)
                                         .get(property);
                                 for (final Object item : items) {
                                     // 7.4.11.3.3.1.1)
                                     if (item instanceof Map && (((Map<String, Object>) item)
                                             .containsKey(JsonLdConsts.VALUE)
                                             || ((Map<String, Object>) item)
-                                                    .containsKey(JsonLdConsts.LIST))) {
+                                            .containsKey(JsonLdConsts.LIST))) {
                                         throw new JsonLdError(Error.INVALID_REVERSE_PROPERTY_VALUE);
                                     }
                                     // 7.4.11.3.3.1.2)
@@ -759,14 +755,14 @@ public class JsonLdApi {
                 else if (JsonLdConsts.LANGUAGE.equals(activeCtx.getContainer(key))
                         && value instanceof Map) {
                     // 7.5.1)
-                    expandedValue = new ArrayList<Object>();
+                    expandedValue = new ArrayList<>();
                     // 7.5.2)
                     for (final String language : ((Map<String, Object>) value).keySet()) {
                         Object languageValue = ((Map<String, Object>) value).get(language);
                         // 7.5.2.1)
                         if (!(languageValue instanceof List)) {
                             final Object tmp = languageValue;
-                            languageValue = new ArrayList<Object>();
+                            languageValue = new ArrayList<>();
                             ((List<Object>) languageValue).add(tmp);
                         }
                         // 7.5.2.2)
@@ -788,9 +784,9 @@ public class JsonLdApi {
                 else if (JsonLdConsts.INDEX.equals(activeCtx.getContainer(key))
                         && value instanceof Map) {
                     // 7.6.1)
-                    expandedValue = new ArrayList<Object>();
+                    expandedValue = new ArrayList<>();
                     // 7.6.2)
-                    final List<String> indexKeys = new ArrayList<String>(
+                    final List<String> indexKeys = new ArrayList<>(
                             ((Map<String, Object>) value).keySet());
                     Collections.sort(indexKeys);
                     for (final String index : indexKeys) {
@@ -798,13 +794,14 @@ public class JsonLdApi {
                         // 7.6.2.1)
                         if (!(indexValue instanceof List)) {
                             final Object tmp = indexValue;
-                            indexValue = new ArrayList<Object>();
+                            indexValue = new ArrayList<>();
                             ((List<Object>) indexValue).add(tmp);
                         }
                         // 7.6.2.2)
                         indexValue = expand(activeCtx, key, indexValue);
                         // 7.6.2.3)
-                        for (final Map<String, Object> item : (List<Map<String, Object>>) indexValue) {
+                        for (final Map<String, Object> item : (List<Map<String, Object>>)
+                                indexValue) {
                             // 7.6.2.3.1)
                             if (!item.containsKey(JsonLdConsts.INDEX)) {
                                 item.put(JsonLdConsts.INDEX, index);
@@ -847,7 +844,7 @@ public class JsonLdApi {
                     // 7.10.3)
                     if (!(expandedValue instanceof List)) {
                         final Object tmp = expandedValue;
-                        expandedValue = new ArrayList<Object>();
+                        expandedValue = new ArrayList<>();
                         ((List<Object>) expandedValue).add(tmp);
                     }
                     // 7.10.4)
@@ -860,7 +857,7 @@ public class JsonLdApi {
                         }
                         // 7.10.4.2)
                         if (!reverseMap.containsKey(expandedProperty)) {
-                            reverseMap.put(expandedProperty, new ArrayList<Object>());
+                            reverseMap.put(expandedProperty, new ArrayList<>());
                         }
                         // 7.10.4.3)
                         if (item instanceof List) {
@@ -875,7 +872,7 @@ public class JsonLdApi {
                 else {
                     // 7.11.1)
                     if (!result.containsKey(expandedProperty)) {
-                        result.put(expandedProperty, new ArrayList<Object>());
+                        result.put(expandedProperty, new ArrayList<>());
                     }
                     // 7.11.2)
                     if (expandedValue instanceof List) {
@@ -927,7 +924,7 @@ public class JsonLdApi {
             else if (result.containsKey(JsonLdConsts.TYPE)) {
                 final Object rtype = result.get(JsonLdConsts.TYPE);
                 if (!(rtype instanceof List)) {
-                    final List<Object> tmp = new ArrayList<Object>();
+                    final List<Object> tmp = new ArrayList<>();
                     tmp.add(rtype);
                     result.put(JsonLdConsts.TYPE, tmp);
                 }
@@ -983,27 +980,16 @@ public class JsonLdApi {
     /**
      * Expansion Algorithm
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#expansion-algorithm
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#expansion-algorithm
      *
-     * @param activeCtx
-     *            The Active Context
-     * @param element
-     *            The current element
+     * @param activeCtx The Active Context
+     * @param element   The current element
      * @return The expanded JSON-LD object.
-     * @throws JsonLdError
-     *             If there was an error during expansion.
+     * @throws JsonLdError If there was an error during expansion.
      */
     public Object expand(Context activeCtx, Object element) throws JsonLdError {
         return expand(activeCtx, null, element);
     }
-
-    /***
-     * _____ _ _ _ _ _ _ _ _ | ___| | __ _| |_| |_ ___ _ __ / \ | | __ _ ___ _
-     * __(_) |_| |__ _ __ ___ | |_ | |/ _` | __| __/ _ \ '_ \ / _ \ | |/ _` |/ _
-     * \| '__| | __| '_ \| '_ ` _ \ | _| | | (_| | |_| || __/ | | | / ___ \| |
-     * (_| | (_) | | | | |_| | | | | | | | | |_| |_|\__,_|\__|\__\___|_| |_| /_/
-     * \_\_|\__, |\___/|_| |_|\__|_| |_|_| |_| |_| |___/
-     */
 
     void generateNodeMap(Object element, Map<String, Object> nodeMap) throws JsonLdError {
         generateNodeMap(element, nodeMap, JsonLdConsts.DEFAULT, null, null, null);
@@ -1014,8 +1000,10 @@ public class JsonLdApi {
         generateNodeMap(element, nodeMap, activeGraph, null, null, null);
     }
 
-    void generateNodeMap(Object element, Map<String, Object> nodeMap, String activeGraph,
-            Object activeSubject, String activeProperty, Map<String, Object> list)
+    @SuppressWarnings("unchecked")
+    private void generateNodeMap(Object element, Map<String, Object> nodeMap, String activeGraph,
+                                 Object activeSubject, String activeProperty, Map<String, Object>
+                                             list)
             throws JsonLdError {
         // 1)
         if (element instanceof List) {
@@ -1041,11 +1029,11 @@ public class JsonLdApi {
         if (elem.containsKey(JsonLdConsts.TYPE)) {
             // 3.1)
             List<String> oldTypes;
-            final List<String> newTypes = new ArrayList<String>();
+            final List<String> newTypes = new ArrayList<>();
             if (elem.get(JsonLdConsts.TYPE) instanceof List) {
                 oldTypes = (List<String>) elem.get(JsonLdConsts.TYPE);
             } else {
-                oldTypes = new ArrayList<String>(4);
+                oldTypes = new ArrayList<>(4);
                 oldTypes.add((String) elem.get(JsonLdConsts.TYPE));
             }
             for (final String item : oldTypes) {
@@ -1077,7 +1065,7 @@ public class JsonLdApi {
         // 5)
         else if (elem.containsKey(JsonLdConsts.LIST)) {
             // 5.1)
-            final Map<String, Object> result = newMap(JsonLdConsts.LIST, new ArrayList<Object>(4));
+            final Map<String, Object> result = newMap(JsonLdConsts.LIST, new ArrayList<>(4));
             // 5.2)
             // for (final Object item : (List<Object>) elem.get("@list")) {
             // generateNodeMap(item, nodeMap, activeGraph, activeSubject,
@@ -1173,7 +1161,7 @@ public class JsonLdApi {
                 generateNodeMap(elem.remove(JsonLdConsts.GRAPH), nodeMap, id, null, null, null);
             }
             // 6.11)
-            final List<String> keys = new ArrayList<String>(elem.keySet());
+            final List<String> keys = new ArrayList<>(elem.keySet());
             Collections.sort(keys);
             for (String property : keys) {
                 final Object value = elem.get(property);
@@ -1183,7 +1171,7 @@ public class JsonLdApi {
                 }
                 // 6.11.2)
                 if (!node.containsKey(property)) {
-                    node.put(property, new ArrayList<Object>(4));
+                    node.put(property, new ArrayList<>(4));
                 }
                 // 6.11.3)
                 generateNodeMap(value, nodeMap, activeGraph, id, property, null);
@@ -1194,14 +1182,14 @@ public class JsonLdApi {
     /**
      * Blank Node identifier map specified in:
      *
-     * http://www.w3.org/TR/json-ld-api/#generate-blank-node-identifier
+     * <p>http://www.w3.org/TR/json-ld-api/#generate-blank-node-identifier
      */
-    private final Map<String, String> blankNodeIdentifierMap = new LinkedHashMap<String, String>();
+    private final Map<String, String> blankNodeIdentifierMap = new LinkedHashMap<>();
 
     /**
      * Counter specified in:
      *
-     * http://www.w3.org/TR/json-ld-api/#generate-blank-node-identifier
+     * <p>http://www.w3.org/TR/json-ld-api/#generate-blank-node-identifier
      */
     private int blankNodeCounter = 0;
 
@@ -1209,15 +1197,14 @@ public class JsonLdApi {
      * Generates a blank node identifier for the given key using the algorithm
      * specified in:
      *
-     * http://www.w3.org/TR/json-ld-api/#generate-blank-node-identifier
+     * <p>http://www.w3.org/TR/json-ld-api/#generate-blank-node-identifier
      *
-     * @param id
-     *            The id, or null to generate a fresh, unused, blank node
-     *            identifier.
+     * @param id The id, or null to generate a fresh, unused, blank node
+     *           identifier.
      * @return A blank node identifier based on id if it was not null, or a
-     *         fresh, unused, blank node identifier if it was null.
+     * fresh, unused, blank node identifier if it was null.
      */
-    String generateBlankNodeIdentifier(String id) {
+    private String generateBlankNodeIdentifier(String id) {
         if (id != null && blankNodeIdentifierMap.containsKey(id)) {
             return blankNodeIdentifierMap.get(id);
         }
@@ -1232,7 +1219,7 @@ public class JsonLdApi {
      * Generates a fresh, unused, blank node identifier using the algorithm
      * specified in:
      *
-     * http://www.w3.org/TR/json-ld-api/#generate-blank-node-identifier
+     * <p>http://www.w3.org/TR/json-ld-api/#generate-blank-node-identifier
      *
      * @return A fresh, unused, blank node identifier.
      */
@@ -1240,28 +1227,19 @@ public class JsonLdApi {
         return generateBlankNodeIdentifier(null);
     }
 
-    /***
-     * _____ _ _ _ _ _ _ | ___| __ __ _ _ __ ___ (_)_ __ __ _ / \ | | __ _ ___ _
-     * __(_) |_| |__ _ __ ___ | |_ | '__/ _` | '_ ` _ \| | '_ \ / _` | / _ \ |
-     * |/ _` |/ _ \| '__| | __| '_ \| '_ ` _ \ | _|| | | (_| | | | | | | | | | |
-     * (_| | / ___ \| | (_| | (_) | | | | |_| | | | | | | | | |_| |_| \__,_|_|
-     * |_| |_|_|_| |_|\__, | /_/ \_\_|\__, |\___/|_| |_|\__|_| |_|_| |_| |_|
-     * |___/ |___/
-     */
-
     private class FramingContext {
         public boolean embed;
-        public boolean explicit;
-        public boolean omitDefault;
+        boolean explicit;
+        boolean omitDefault;
 
-        public FramingContext() {
+        FramingContext() {
             embed = true;
             explicit = false;
             omitDefault = false;
             embeds = null;
         }
 
-        public FramingContext(JsonLdOptions opts) {
+        FramingContext(JsonLdOptions opts) {
             this();
             if (opts.getEmbed() != null) {
                 this.embed = opts.getEmbed();
@@ -1274,7 +1252,7 @@ public class JsonLdApi {
             }
         }
 
-        public Map<String, EmbedNode> embeds = null;
+        Map<String, EmbedNode> embeds = null;
     }
 
     private class EmbedNode {
@@ -1288,24 +1266,22 @@ public class JsonLdApi {
      * Performs JSON-LD
      * <a href="http://json-ld.org/spec/latest/json-ld-framing/">framing</a>.
      *
-     * @param input
-     *            the expanded JSON-LD to frame.
-     * @param frame
-     *            the expanded JSON-LD frame to use.
+     * @param input the expanded JSON-LD to frame.
+     * @param frame the expanded JSON-LD frame to use.
      * @return the framed output.
-     * @throws JsonLdError
-     *             If the framing was not successful.
+     * @throws JsonLdError If the framing was not successful.
      */
-    public List<Object> frame(Object input, List<Object> frame) throws JsonLdError {
+    @SuppressWarnings("unchecked")
+    List<Object> frame(Object input, List<Object> frame) throws JsonLdError {
         // create framing state
         final FramingContext state = new FramingContext(this.opts);
 
         // use tree map so keys are sotred by default
-        final Map<String, Object> nodes = new TreeMap<String, Object>();
+        final Map<String, Object> nodes = new TreeMap<>();
         generateNodeMap(input, nodes);
         this.nodeMap = (Map<String, Object>) nodes.get(JsonLdConsts.DEFAULT);
 
-        final List<Object> framed = new ArrayList<Object>();
+        final List<Object> framed = new ArrayList<>();
         // NOTE: frame validation is done by the function not allowing anything
         // other than list to me passed
         frame(state, this.nodeMap,
@@ -1318,35 +1294,32 @@ public class JsonLdApi {
     /**
      * Frames subjects according to the given frame.
      *
-     * @param state
-     *            the current framing state.
-     * @param subjects
-     *            the subjects to filter.
-     * @param frame
-     *            the frame.
-     * @param parent
-     *            the parent subject or top-level array.
-     * @param property
-     *            the parent property, initialized to null.
-     * @throws JsonLdError
-     *             If there was an error during framing.
+     * @param state    the current framing state.
+     * @param frame    the frame.
+     * @param parent   the parent subject or top-level array.
+     * @param property the parent property, initialized to null.
+     * @throws JsonLdError If there was an error during framing.
      */
+    @SuppressWarnings("unchecked")
     private void frame(FramingContext state, Map<String, Object> nodes, Map<String, Object> frame,
-            Object parent, String property) throws JsonLdError {
+                       Object parent, String property) throws JsonLdError {
 
         // filter out subjects that match the frame
         final Map<String, Object> matches = filterNodes(state, nodes, frame);
 
         // get flags for current frame
         Boolean embedOn = getFrameFlag(frame, JsonLdConsts.EMBED, state.embed);
-        final Boolean explicicOn = getFrameFlag(frame, JsonLdConsts.EXPLICIT, state.explicit);
+        final Boolean explicitOn = getFrameFlag(frame, JsonLdConsts.EXPLICIT, state.explicit);
+        final Map<String, Object> flags = newMap();
+        flags.put(JsonLdConsts.EXPLICIT, explicitOn);
+        flags.put(JsonLdConsts.EMBED, embedOn);
 
         // add matches to output
-        final List<String> ids = new ArrayList<String>(matches.keySet());
+        final List<String> ids = new ArrayList<>(matches.keySet());
         Collections.sort(ids);
         for (final String id : ids) {
             if (property == null) {
-                state.embeds = new LinkedHashMap<String, EmbedNode>();
+                state.embeds = new LinkedHashMap<>();
             }
 
             // start output
@@ -1400,7 +1373,7 @@ public class JsonLdApi {
 
                 // iterate over subject properties
                 final Map<String, Object> element = (Map<String, Object>) matches.get(id);
-                List<String> props = new ArrayList<String>(element.keySet());
+                List<String> props = new ArrayList<>(element.keySet());
                 Collections.sort(props);
                 for (final String prop : props) {
 
@@ -1411,11 +1384,7 @@ public class JsonLdApi {
                     }
 
                     // if property isn't in the frame
-                    if (!frame.containsKey(prop)) {
-                        // if explicit is off, embed values
-                        if (!explicicOn) {
-                            embedValues(state, element, prop, output);
-                        }
+                    if (explicitOn && !frame.containsKey(prop)) {
                         continue;
                     }
 
@@ -1429,7 +1398,7 @@ public class JsonLdApi {
                                 && ((Map<String, Object>) item).containsKey(JsonLdConsts.LIST)) {
                             // add empty list
                             final Map<String, Object> list = newMap();
-                            list.put(JsonLdConsts.LIST, new ArrayList<Object>());
+                            list.put(JsonLdConsts.LIST, new ArrayList<>());
                             addFrameOutput(state, output, prop, list);
 
                             // add list objects
@@ -1443,12 +1412,16 @@ public class JsonLdApi {
                                     // TODO: nodes may need to be node_map,
                                     // which is global
                                     tmp.put(itemid, this.nodeMap.get(itemid));
-                                    frame(state, tmp,
-                                            (Map<String, Object>) ((List<Object>) frame.get(prop))
-                                                    .get(0),
-                                            list, JsonLdConsts.LIST);
+                                    Map<String, Object> subframe;
+                                    if (frame.containsKey(prop)) {
+                                        subframe = (Map<String, Object>) ((List<Object>) frame
+                                                .get(prop)).get(0);
+                                    } else {
+                                        subframe = flags;
+                                    }
+                                    frame(state, tmp, subframe, list, JsonLdConsts.LIST);
                                 } else {
-                                    // include other values automatcially (TODO:
+                                    // include other values automatically (TODO:
                                     // may need JsonLdUtils.clone(n))
                                     addFrameOutput(state, list, JsonLdConsts.LIST, listitem);
                                 }
@@ -1463,9 +1436,14 @@ public class JsonLdApi {
                             // TODO: nodes may need to be node_map, which is
                             // global
                             tmp.put(itemid, this.nodeMap.get(itemid));
-                            frame(state, tmp,
-                                    (Map<String, Object>) ((List<Object>) frame.get(prop)).get(0),
-                                    output, prop);
+                            Map<String, Object> subframe;
+                            if (frame.containsKey(prop)) {
+                                subframe = (Map<String, Object>) ((List<Object>) frame.get(prop))
+                                        .get(0);
+                            } else {
+                                subframe = flags;
+                            }
+                            frame(state, tmp, subframe, output, prop);
                         } else {
                             // include other values automatically (TODO: may
                             // need JsonLdUtils.clone(o))
@@ -1497,12 +1475,12 @@ public class JsonLdApi {
                             def = JsonLdUtils.clone(propertyFrame.get(JsonLdConsts.DEFAULT));
                         }
                         if (!(def instanceof List)) {
-                            final List<Object> tmp = new ArrayList<Object>();
+                            final List<Object> tmp = new ArrayList<>();
                             tmp.add(def);
                             def = tmp;
                         }
                         final Map<String, Object> tmp1 = newMap(JsonLdConsts.PRESERVE, def);
-                        final List<Object> tmp2 = new ArrayList<Object>();
+                        final List<Object> tmp2 = new ArrayList<>();
                         tmp2.add(tmp1);
                         output.put(prop, tmp2);
                     }
@@ -1514,6 +1492,7 @@ public class JsonLdApi {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Boolean getFrameFlag(Map<String, Object> frame, String name, boolean thedefault) {
         Object value = frame.get(name);
         if (value instanceof List) {
@@ -1533,11 +1512,10 @@ public class JsonLdApi {
     /**
      * Removes an existing embed.
      *
-     * @param state
-     *            the current framing state.
-     * @param id
-     *            the @id of the embed to remove.
+     * @param state the current framing state.
+     * @param id    the @id of the embed to remove.
      */
+    @SuppressWarnings("unchecked")
     private static void removeEmbed(FramingContext state, String id) {
         // get existing embed
         final Map<String, EmbedNode> embeds = state.embeds;
@@ -1551,7 +1529,7 @@ public class JsonLdApi {
         // remove existing embed
         if (JsonLdUtils.isNode(parent)) {
             // replace subject with reference
-            final List<Object> newvals = new ArrayList<Object>();
+            final List<Object> newvals = new ArrayList<>();
             final List<Object> oldvals = (List<Object>) ((Map<String, Object>) parent)
                     .get(property);
             for (final Object v : oldvals) {
@@ -1568,9 +1546,10 @@ public class JsonLdApi {
         removeDependents(embeds, id);
     }
 
+    @SuppressWarnings("unchecked")
     private static void removeDependents(Map<String, EmbedNode> embeds, String id) {
         // get embed keys as a separate array to enable deleting keys in map
-        for (final String id_dep : new HashSet<String>(embeds.keySet())) {
+        for (final String id_dep : new HashSet<>(embeds.keySet())) {
             final EmbedNode e = embeds.get(id_dep);
             if (e == null || e.parent == null || !(e.parent instanceof Map)) {
                 continue;
@@ -1583,8 +1562,9 @@ public class JsonLdApi {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, Object> filterNodes(FramingContext state, Map<String, Object> nodes,
-            Map<String, Object> frame) throws JsonLdError {
+                                            Map<String, Object> frame) throws JsonLdError {
         final Map<String, Object> rval = newMap();
         for (final String id : nodes.keySet()) {
             final Map<String, Object> element = (Map<String, Object>) nodes.get(id);
@@ -1595,8 +1575,9 @@ public class JsonLdApi {
         return rval;
     }
 
+    @SuppressWarnings("unchecked")
     private boolean filterNode(FramingContext state, Map<String, Object> node,
-            Map<String, Object> frame) throws JsonLdError {
+                               Map<String, Object> frame) throws JsonLdError {
         final Object types = frame.get(JsonLdConsts.TYPE);
         if (types != null) {
             if (!(types instanceof List)) {
@@ -1604,7 +1585,7 @@ public class JsonLdApi {
             }
             Object nodeTypes = node.get(JsonLdConsts.TYPE);
             if (nodeTypes == null) {
-                nodeTypes = new ArrayList<Object>();
+                nodeTypes = new ArrayList<>();
             } else if (!(nodeTypes instanceof List)) {
                 throw new JsonLdError(Error.SYNTAX_ERROR, "node @type must be an array");
             }
@@ -1652,21 +1633,18 @@ public class JsonLdApi {
     /**
      * Adds framing output to the given parent.
      *
-     * @param state
-     *            the current framing state.
-     * @param parent
-     *            the parent to add to.
-     * @param property
-     *            the parent property.
-     * @param output
-     *            the output to add.
+     * @param state    the current framing state.
+     * @param parent   the parent to add to.
+     * @param property the parent property.
+     * @param output   the output to add.
      */
+    @SuppressWarnings("unchecked")
     private static void addFrameOutput(FramingContext state, Object parent, String property,
-            Object output) {
+                                       Object output) {
         if (parent instanceof Map) {
             List<Object> prop = (List<Object>) ((Map<String, Object>) parent).get(property);
             if (prop == null) {
-                prop = new ArrayList<Object>();
+                prop = new ArrayList<>();
                 ((Map<String, Object>) parent).put(property, prop);
             }
             prop.add(output);
@@ -1679,17 +1657,14 @@ public class JsonLdApi {
      * Embeds values for the given subject and property into the given output
      * during the framing algorithm.
      *
-     * @param state
-     *            the current framing state.
-     * @param element
-     *            the subject.
-     * @param property
-     *            the property.
-     * @param output
-     *            the output.
+     * @param state    the current framing state.
+     * @param element  the subject.
+     * @param property the property.
+     * @param output   the output.
      */
+    @SuppressWarnings("unchecked")
     private void embedValues(FramingContext state, Map<String, Object> element, String property,
-            Object output) {
+                             Object output) {
         // embed subject properties in output
         final List<Object> objects = (List<Object>) element.get(property);
         for (Object o : objects) {
@@ -1729,24 +1704,13 @@ public class JsonLdApi {
         }
     }
 
-    /***
-     * ____ _ __ ____ ____ _____ _ _ _ _ _ / ___|___ _ ____ _____ _ __| |_ / _|_
-     * __ ___ _ __ ___ | _ \| _ \| ___| / \ | | __ _ ___ _ __(_) |_| |__ _ __
-     * ___ | | / _ \| '_ \ \ / / _ \ '__| __| | |_| '__/ _ \| '_ ` _ \ | |_) | |
-     * | | |_ / _ \ | |/ _` |/ _ \| '__| | __| '_ \| '_ ` _ \ | |__| (_) | | | \
-     * V / __/ | | |_ | _| | | (_) | | | | | | | _ <| |_| | _| / ___ \| | (_| |
-     * (_) | | | | |_| | | | | | | | | \____\___/|_| |_|\_/ \___|_| \__| |_| |_|
-     * \___/|_| |_| |_| |_| \_\____/|_| /_/ \_\_|\__, |\___/|_| |_|\__|_| |_|_|
-     * |_| |_| |___/
-     */
-
     /**
-     * Helper class for node usages
+     * Helper class for node usages.
      *
      * @author tristan
      */
     private class UsagesNode {
-        public UsagesNode(NodeMapNode node, String property, Map<String, Object> value) {
+        UsagesNode(NodeMapNode node, String property, Map<String, Object> value) {
             this.node = node;
             this.property = property;
             this.value = value;
@@ -1757,16 +1721,17 @@ public class JsonLdApi {
         public Map<String, Object> value = null;
     }
 
+    @SuppressWarnings("unchecked")
     private class NodeMapNode extends LinkedHashMap<String, Object> {
-        public List<UsagesNode> usages = new ArrayList(4);
+        List<UsagesNode> usages = new ArrayList(4);
 
-        public NodeMapNode(String id) {
+        NodeMapNode(String id) {
             super();
             this.put(JsonLdConsts.ID, id);
         }
 
         // helper fucntion for 4.3.3
-        public boolean isWellFormedListNode() {
+        boolean isWellFormedListNode() {
             if (usages.size() != 1) {
                 return false;
             }
@@ -1797,28 +1762,23 @@ public class JsonLdApi {
             if (containsKey(JsonLdConsts.ID)) {
                 keys++;
             }
-            if (keys < size()) {
-                return false;
-            }
-            return true;
+            return keys >= size();
         }
 
         // return this node without the usages variable
-        public Map<String, Object> serialize() {
-            return new LinkedHashMap<String, Object>(this);
+        Map<String, Object> serialize() {
+            return new LinkedHashMap<>(this);
         }
     }
 
     /**
      * Converts RDF statements into JSON-LD.
      *
-     * @param dataset
-     *            the RDF statements.
+     * @param dataset the RDF statements.
      * @return A list of JSON-LD objects found in the given dataset.
-     * @throws JsonLdError
-     *             If there was an error during conversion from RDF to JSON-LD.
+     * @throws JsonLdError If there was an error during conversion from RDF to JSON-LD.
      */
-    public List<Object> fromRDF(final RDFDataset dataset) throws JsonLdError {
+    List<Object> fromRDF(final RDFDataset dataset) throws JsonLdError {
         return fromRDF(dataset, false);
     }
 
@@ -1826,25 +1786,22 @@ public class JsonLdApi {
      * Converts RDF statements into JSON-LD, presuming that there are no
      * duplicates in the dataset.
      *
-     * @param dataset
-     *            the RDF statements.
-     * @param noDuplicatesInDataset
-     *            True if there are no duplicates in the dataset and false
-     *            otherwise.
+     * @param dataset               the RDF statements.
+     * @param noDuplicatesInDataset True if there are no duplicates in the dataset and false
+     *                              otherwise.
      * @return A list of JSON-LD objects found in the given dataset.
-     * @throws JsonLdError
-     *             If there was an error during conversion from RDF to JSON-LD.
-     * @deprecated Experimental method, only use if you are sure you need to use
-     *             this method. Most users will need to use
-     *             {@link #fromRDF(RDFDataset)}.
+     * @throws JsonLdError If there was an error during conversion from RDF to JSON-LD.
+     *                     Experimental method, only use if you are sure you need to use
+     *                     this method. Most users will need to use
+     *                     {@link #fromRDF(RDFDataset)}.
      */
-    @Deprecated
-    public List<Object> fromRDF(final RDFDataset dataset, boolean noDuplicatesInDataset)
+    @SuppressWarnings("unchecked")
+    List<Object> fromRDF(final RDFDataset dataset, boolean noDuplicatesInDataset)
             throws JsonLdError {
         // 1)
-        final Map<String, NodeMapNode> defaultGraph = new LinkedHashMap<String, NodeMapNode>(4);
+        final Map<String, NodeMapNode> defaultGraph = new LinkedHashMap<>(4);
         // 2)
-        final Map<String, Map<String, NodeMapNode>> graphMap = new LinkedHashMap<String, Map<String, NodeMapNode>>(
+        final Map<String, Map<String, NodeMapNode>> graphMap = new LinkedHashMap<>(
                 4);
         graphMap.put(JsonLdConsts.DEFAULT, defaultGraph);
 
@@ -1856,7 +1813,7 @@ public class JsonLdApi {
             // 3.2+3.4)
             Map<String, NodeMapNode> nodeMap;
             if (!graphMap.containsKey(name)) {
-                nodeMap = new LinkedHashMap<String, NodeMapNode>();
+                nodeMap = new LinkedHashMap<>();
                 graphMap.put(name, nodeMap);
             } else {
                 nodeMap = graphMap.get(name);
@@ -1932,8 +1889,8 @@ public class JsonLdApi {
                 String property = usage.property;
                 Map<String, Object> head = usage.value;
                 // 4.3.2)
-                final List<Object> list = new ArrayList<Object>(4);
-                final List<String> listNodes = new ArrayList<String>(4);
+                final List<Object> list = new ArrayList<>(4);
+                final List<String> listNodes = new ArrayList<>(4);
                 // 4.3.3)
                 while (RDF_REST.equals(property) && node.isWellFormedListNode()) {
                     // 4.3.3.1)
@@ -1980,18 +1937,18 @@ public class JsonLdApi {
         }
 
         // 5)
-        final List<Object> result = new ArrayList<Object>(4);
+        final List<Object> result = new ArrayList<>(4);
         // 6)
-        final List<String> ids = new ArrayList<String>(defaultGraph.keySet());
+        final List<String> ids = new ArrayList<>(defaultGraph.keySet());
         Collections.sort(ids);
         for (final String subject : ids) {
             final NodeMapNode node = defaultGraph.get(subject);
             // 6.1)
             if (graphMap.containsKey(subject)) {
                 // 6.1.1)
-                node.put(JsonLdConsts.GRAPH, new ArrayList<Object>(4));
+                node.put(JsonLdConsts.GRAPH, new ArrayList<>(4));
                 // 6.1.2)
-                final List<String> keys = new ArrayList<String>(graphMap.get(subject).keySet());
+                final List<String> keys = new ArrayList<>(graphMap.get(subject).keySet());
                 Collections.sort(keys);
                 for (final String s : keys) {
                     final NodeMapNode n = graphMap.get(subject).get(s);
@@ -2011,25 +1968,15 @@ public class JsonLdApi {
         return result;
     }
 
-    /***
-     * ____ _ _ ____ ____ _____ _ _ _ _ _ / ___|___ _ ____ _____ _ __| |_ | |_
-     * ___ | _ \| _ \| ___| / \ | | __ _ ___ _ __(_) |_| |__ _ __ ___ | | / _ \|
-     * '_ \ \ / / _ \ '__| __| | __/ _ \ | |_) | | | | |_ / _ \ | |/ _` |/ _ \|
-     * '__| | __| '_ \| '_ ` _ \ | |__| (_) | | | \ V / __/ | | |_ | || (_) | |
-     * _ <| |_| | _| / ___ \| | (_| | (_) | | | | |_| | | | | | | | |
-     * \____\___/|_| |_|\_/ \___|_| \__| \__\___/ |_| \_\____/|_| /_/ \_\_|\__,
-     * |\___/|_| |_|\__|_| |_|_| |_| |_| |___/
-     */
-
     /**
      * Adds RDF triples for each graph in the current node map to an RDF
      * dataset.
      *
      * @return the RDF dataset.
-     * @throws JsonLdError
-     *             If there was an error converting from JSON-LD to RDF.
+     * @throws JsonLdError If there was an error converting from JSON-LD to RDF.
      */
-    public RDFDataset toRDF() throws JsonLdError {
+    @SuppressWarnings("unchecked")
+    RDFDataset toRDF() throws JsonLdError {
         // TODO: make the default generateNodeMap call (i.e. without a
         // graphName) create and return the nodeMap
         final Map<String, Object> nodeMap = newMap();
@@ -2050,28 +1997,17 @@ public class JsonLdApi {
         return dataset;
     }
 
-    /***
-     * _ _ _ _ _ _ _ _ _ _ _ | \ | | ___ _ __ _ __ ___ __ _| (_)______ _| |_(_)
-     * ___ _ __ / \ | | __ _ ___ _ __(_) |_| |__ _ __ ___ | \| |/ _ \| '__| '_ `
-     * _ \ / _` | | |_ / _` | __| |/ _ \| '_ \ / _ \ | |/ _` |/ _ \| '__| | __|
-     * '_ \| '_ ` _ \ | |\ | (_) | | | | | | | | (_| | | |/ / (_| | |_| | (_) |
-     * | | | / ___ \| | (_| | (_) | | | | |_| | | | | | | | | |_| \_|\___/|_|
-     * |_| |_| |_|\__,_|_|_/___\__,_|\__|_|\___/|_| |_| /_/ \_\_|\__, |\___/|_|
-     * |_|\__|_| |_|_| |_| |_| |___/
-     */
-
     /**
      * Performs RDF normalization on the given JSON-LD input.
      *
-     * @param dataset
-     *            the expanded JSON-LD object to normalize.
+     * @param dataset the expanded JSON-LD object to normalize.
      * @return The normalized JSON-LD object
-     * @throws JsonLdError
-     *             If there was an error while normalizing.
+     * @throws JsonLdError If there was an error while normalizing.
      */
-    public Object normalize(Map<String, Object> dataset) throws JsonLdError {
+    @SuppressWarnings("unchecked")
+    Object normalize(Map<String, Object> dataset) throws JsonLdError {
         // create quads and map bnodes to their associated quads
-        final List<Object> quads = new ArrayList<Object>();
+        final List<Object> quads = new ArrayList<>();
         final Map<String, Object> bnodes = newMap();
         for (String graphName : dataset.keySet()) {
             final List<Map<String, Object>> triples = (List<Map<String, Object>>) dataset
@@ -2095,7 +2031,7 @@ public class JsonLdApi {
                 }
                 quads.add(quad);
 
-                final String[] attrs = new String[] { "subject", "object", "name" };
+                final String[] attrs = new String[]{"subject", "object", "name"};
                 for (final String attr : attrs) {
                     if (quad.containsKey(attr) && "blank node"
                             .equals(((Map<String, Object>) quad.get(attr)).get("type"))) {
@@ -2104,7 +2040,7 @@ public class JsonLdApi {
                         if (!bnodes.containsKey(id)) {
                             bnodes.put(id, new LinkedHashMap<String, List<Object>>() {
                                 {
-                                    put("quads", new ArrayList<Object>());
+                                    put("quads", new ArrayList<>());
                                 }
                             });
                         }

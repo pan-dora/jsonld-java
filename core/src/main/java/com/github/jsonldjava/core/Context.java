@@ -1,37 +1,65 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.core;
 
 import static com.github.jsonldjava.core.JsonLdUtils.compareShortestLeast;
 import static com.github.jsonldjava.utils.Obj.newMap;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.github.jsonldjava.core.JsonLdError.Error;
 import com.github.jsonldjava.utils.JsonLdUrl;
 import com.github.jsonldjava.utils.Obj;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+
+
+
 /**
  * A helper class which still stores all the values in a map but gives member
- * variables easily access certain keys
+ * variables easily access certain keys.
  *
  * @author tristan
- *
  */
 public class Context extends LinkedHashMap<String, Object> {
 
     private JsonLdOptions options;
     private Map<String, Object> termDefinitions;
-    public Map<String, Object> inverse = null;
+    private Map<String, Object> inverse = null;
 
-    public Context() {
+    Context() {
         this(new JsonLdOptions());
     }
 
-    public Context(JsonLdOptions opts) {
+    Context(JsonLdOptions opts) {
         super();
         init(opts);
     }
@@ -46,6 +74,7 @@ public class Context extends LinkedHashMap<String, Object> {
         init(new JsonLdOptions());
     }
 
+    @SuppressWarnings("unchecked")
     public Context(Object context, JsonLdOptions opts) {
         // TODO: load remote context
         super(context instanceof Map ? (Map<String, Object>) context : null);
@@ -63,15 +92,13 @@ public class Context extends LinkedHashMap<String, Object> {
     /**
      * Value Compaction Algorithm
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#value-compaction
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#value-compaction
      *
-     * @param activeProperty
-     *            The Active Property
-     * @param value
-     *            The value to compact
+     * @param activeProperty The Active Property
+     * @param value          The value to compact
      * @return The compacted value
      */
-    public Object compactValue(String activeProperty, Map<String, Object> value) {
+    Object compactValue(String activeProperty, Map<String, Object> value) {
         // 1)
         int numberMembers = value.size();
         // 2)
@@ -116,8 +143,8 @@ public class Context extends LinkedHashMap<String, Object> {
         if (numberMembers == 1 && (!(valueValue instanceof String)
                 || !this.containsKey(JsonLdConsts.LANGUAGE)
                 || (termDefinitions.containsKey(activeProperty)
-                        && getTermDefinition(activeProperty).containsKey(JsonLdConsts.LANGUAGE)
-                        && languageMapping == null))) {
+                && getTermDefinition(activeProperty).containsKey(JsonLdConsts.LANGUAGE)
+                && languageMapping == null))) {
             return valueValue;
         }
         // 8)
@@ -127,15 +154,12 @@ public class Context extends LinkedHashMap<String, Object> {
     /**
      * Context Processing Algorithm
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#context-processing-algorithms
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#context-processing-algorithms
      *
-     * @param localContext
-     *            The Local Context object.
-     * @param remoteContexts
-     *            The list of Strings denoting the remote Context URLs.
+     * @param localContext   The Local Context object.
+     * @param remoteContexts The list of Strings denoting the remote Context URLs.
      * @return The parsed and merged Context.
-     * @throws JsonLdError
-     *             If there is an error parsing the contexts.
+     * @throws JsonLdError If there is an error parsing the contexts.
      */
     @SuppressWarnings("unchecked")
     public Context parse(Object localContext, List<String> remoteContexts) throws JsonLdError {
@@ -146,30 +170,27 @@ public class Context extends LinkedHashMap<String, Object> {
      * Helper method used to work around logic errors related to the recursive
      * nature of the JSONLD-API Context Processing Algorithm.
      *
-     * @param localContext
-     *            The Local Context object.
-     * @param remoteContexts
-     *            The list of Strings denoting the remote Context URLs.
-     * @param parsingARemoteContext
-     *            True if localContext represents a remote context that has been
-     *            parsed and sent into this method and false otherwise. This
-     *            must be set to know whether to propagate the @code{@base} key
-     *            from the context to the result.
+     * @param localContext          The Local Context object.
+     * @param remoteContexts        The list of Strings denoting the remote Context URLs.
+     * @param parsingARemoteContext True if localContext represents a remote context that has been
+     *                              parsed and sent into this method and false otherwise. This
+     *                              must be set to know whether to propagate the @code{@base} key
+     *                              from the context to the result.
      * @return The parsed and merged Context.
-     * @throws JsonLdError
-     *             If there is an error parsing the contexts.
+     * @throws JsonLdError If there is an error parsing the contexts.
      */
+    @SuppressWarnings("unchecked")
     private Context parse(Object localContext, List<String> remoteContexts,
-            boolean parsingARemoteContext) throws JsonLdError {
+                          boolean parsingARemoteContext) throws JsonLdError {
         if (remoteContexts == null) {
-            remoteContexts = new ArrayList<String>();
+            remoteContexts = new ArrayList<>();
         }
         // 1. Initialize result to the result of cloning active context.
         Context result = this.clone(); // TODO: clone?
         // 2)
         if (!(localContext instanceof List)) {
             final Object temp = localContext;
-            localContext = new ArrayList<Object>();
+            localContext = new ArrayList<>();
             ((List<Object>) localContext).add(temp);
         }
         // 3)
@@ -270,7 +291,7 @@ public class Context extends LinkedHashMap<String, Object> {
             }
 
             // 3.7
-            final Map<String, Boolean> defined = new LinkedHashMap<String, Boolean>();
+            final Map<String, Boolean> defined = new LinkedHashMap<>();
             for (final String key : ((Map<String, Object>) context).keySet()) {
                 if (JsonLdConsts.BASE.equals(key) || JsonLdConsts.VOCAB.equals(key)
                         || JsonLdConsts.LANGUAGE.equals(key)) {
@@ -283,22 +304,22 @@ public class Context extends LinkedHashMap<String, Object> {
     }
 
     public Context parse(Object localContext) throws JsonLdError {
-        return this.parse(localContext, new ArrayList<String>());
+        return this.parse(localContext, new ArrayList<>());
     }
 
     /**
      * Create Term Definition Algorithm
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#create-term-definition
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#create-term-definition
      *
-     * @param result
-     * @param context
-     * @param key
-     * @param defined
-     * @throws JsonLdError
+     * @param context Map
+     * @param term String
+     * @param defined Map
+     * @throws JsonLdError JsonLdError
      */
+    @SuppressWarnings("unchecked")
     private void createTermDefinition(Map<String, Object> context, String term,
-            Map<String, Boolean> defined) throws JsonLdError {
+                                      Map<String, Boolean> defined) throws JsonLdError {
         if (defined.containsKey(term)) {
             if (Boolean.TRUE.equals(defined.get(term))) {
                 return;
@@ -355,7 +376,7 @@ public class Context extends LinkedHashMap<String, Object> {
             // least not here!)
             if (JsonLdConsts.ID.equals(type) || JsonLdConsts.VOCAB.equals(type)
                     || (!type.startsWith(JsonLdConsts.BLANK_NODE_PREFIX)
-                            && JsonLdUtils.isAbsoluteIri(type))) {
+                    && JsonLdUtils.isAbsoluteIri(type))) {
                 definition.put(JsonLdConsts.TYPE, type);
             } else {
                 throw new JsonLdError(Error.INVALID_TYPE_MAPPING, type);
@@ -371,7 +392,7 @@ public class Context extends LinkedHashMap<String, Object> {
                 throw new JsonLdError(Error.INVALID_IRI_MAPPING,
                         "Expected String for @reverse value. got "
                                 + (val.get(JsonLdConsts.REVERSE) == null ? "null"
-                                        : val.get(JsonLdConsts.REVERSE).getClass()));
+                                : val.get(JsonLdConsts.REVERSE).getClass()));
             }
             final String reverse = this.expandIri((String) val.get(JsonLdConsts.REVERSE), false,
                     true, context, defined);
@@ -420,7 +441,7 @@ public class Context extends LinkedHashMap<String, Object> {
         }
 
         // 14)
-        else if (term.indexOf(":") >= 0) {
+        else if (term.contains(":")) {
             final int colIndex = term.indexOf(":");
             final String prefix = term.substring(0, colIndex);
             final String suffix = term.substring(colIndex + 1);
@@ -475,18 +496,19 @@ public class Context extends LinkedHashMap<String, Object> {
     /**
      * IRI Expansion Algorithm
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#iri-expansion
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#iri-expansion
      *
-     * @param value
-     * @param relative
-     * @param vocab
-     * @param context
-     * @param defined
-     * @return
-     * @throws JsonLdError
+     * @param value String
+     * @param relative boolean
+     * @param vocab boolean
+     * @param context Map
+     * @param defined Map
+     * @return value
+     * @throws JsonLdError JsonLdError
      */
+    @SuppressWarnings("unchecked")
     String expandIri(String value, boolean relative, boolean vocab, Map<String, Object> context,
-            Map<String, Boolean> defined) throws JsonLdError {
+                     Map<String, Boolean> defined) throws JsonLdError {
         // 1)
         if (value == null || JsonLdUtils.isKeyword(value)) {
             return value;
@@ -518,7 +540,7 @@ public class Context extends LinkedHashMap<String, Object> {
             }
             // 4.3)
             if (context != null && context.containsKey(prefix)
-                    && (!defined.containsKey(prefix) || defined.get(prefix) == false)) {
+                    && (!defined.containsKey(prefix) || !defined.get(prefix))) {
                 this.createTermDefinition(context, prefix, defined);
             }
             // 4.4)
@@ -546,23 +568,19 @@ public class Context extends LinkedHashMap<String, Object> {
     /**
      * IRI Compaction Algorithm
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#iri-compaction
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#iri-compaction
      *
-     * Compacts an IRI or keyword into a term or prefix if it can be. If the IRI
+     * <p>Compacts an IRI or keyword into a term or prefix if it can be. If the IRI
      * has an associated value it may be passed.
      *
-     * @param iri
-     *            the IRI to compact.
-     * @param value
-     *            the value to check or null.
-     * @param relativeTo
-     *            options for how to compact IRIs: vocab: true to split
-     *            after @vocab, false not to.
-     * @param reverse
-     *            true if a reverse property is being compacted, false if not.
-     *
+     * @param iri             the IRI to compact.
+     * @param value           the value to check or null.
+     * @param relativeToVocab options for how to compact IRIs: vocab: true to split
+     *                        after @vocab, false not to.
+     * @param reverse         true if a reverse property is being compacted, false if not.
      * @return the compacted term, prefix, keyword alias, or the original IRI.
      */
+    @SuppressWarnings("unchecked")
     String compactIri(String iri, Object value, boolean relativeToVocab, boolean reverse) {
         // 1)
         if (iri == null) {
@@ -578,7 +596,7 @@ public class Context extends LinkedHashMap<String, Object> {
             }
 
             // 2.2)
-            final List<String> containers = new ArrayList<String>();
+            final List<String> containers = new ArrayList<>();
             // 2.3)
             String typeLanguage = JsonLdConsts.LANGUAGE;
             String typeLanguageValue = JsonLdConsts.NULL;
@@ -704,7 +722,7 @@ public class Context extends LinkedHashMap<String, Object> {
                 typeLanguageValue = JsonLdConsts.NULL;
             }
             // 2.10)
-            final List<String> preferredValues = new ArrayList<String>();
+            final List<String> preferredValues = new ArrayList<>();
             // 2.11)
             if (JsonLdConsts.REVERSE.equals(typeLanguageValue)) {
                 preferredValues.add(JsonLdConsts.REVERSE);
@@ -719,10 +737,10 @@ public class Context extends LinkedHashMap<String, Object> {
                         true);
                 if (termDefinitions.containsKey(result)
                         && ((Map<String, Object>) termDefinitions.get(result))
-                                .containsKey(JsonLdConsts.ID)
+                        .containsKey(JsonLdConsts.ID)
                         && ((Map<String, Object>) value).get(JsonLdConsts.ID)
-                                .equals(((Map<String, Object>) termDefinitions.get(result))
-                                        .get(JsonLdConsts.ID))) {
+                        .equals(((Map<String, Object>) termDefinitions.get(result))
+                                .get(JsonLdConsts.ID))) {
                     preferredValues.add(JsonLdConsts.VOCAB);
                     preferredValues.add(JsonLdConsts.ID);
                 }
@@ -799,11 +817,21 @@ public class Context extends LinkedHashMap<String, Object> {
         return iri;
     }
 
+    String compactIri(String iri, boolean relativeToVocab) {
+        return compactIri(iri, null, relativeToVocab, false);
+    }
+
+    String compactIri(String iri) {
+        return compactIri(iri, null, false, false);
+    }
+
     /**
      * This method is only visible for testing.
      */
-    public static String _iriCompactionStep5point4(String iri, Object value, String compactIRI,
-            final String candidate, Map<String, Object> termDefinitions) {
+    @SuppressWarnings("unchecked")
+    private static String _iriCompactionStep5point4(String iri, Object value, String compactIRI,
+                                                    final String candidate, Map<String, Object>
+                                                                termDefinitions) {
 
         final boolean condition1 = (compactIRI == null
                 || compareShortestLeast(candidate, compactIRI) < 0);
@@ -821,21 +849,15 @@ public class Context extends LinkedHashMap<String, Object> {
     /**
      * Return a map of potential RDF prefixes based on the JSON-LD Term
      * Definitions in this context.
-     * <p>
-     * No guarantees of the prefixes are given, beyond that it will not contain
-     * ":".
      *
-     * @param onlyCommonPrefixes
-     *            If <code>true</code>, the result will not include
-     *            "not so useful" prefixes, such as "term1":
-     *            "http://example.com/term1", e.g. all IRIs will end with "/" or
-     *            "#". If <code>false</code>, all potential prefixes are
-     *            returned.
+     * <p>No guarantees of the prefixes are given, beyond that it will not contain
+     * ":".
      *
      * @return A map from prefix string to IRI string
      */
-    public Map<String, String> getPrefixes(boolean onlyCommonPrefixes) {
-        final Map<String, String> prefixes = new LinkedHashMap<String, String>();
+    @SuppressWarnings("unchecked")
+    Map<String, String> getPrefixes() {
+        final Map<String, String> prefixes = new LinkedHashMap<>();
         for (final String term : termDefinitions.keySet()) {
             if (term.contains(":")) {
                 continue;
@@ -852,19 +874,11 @@ public class Context extends LinkedHashMap<String, Object> {
             if (term.startsWith("@") || id.startsWith("@")) {
                 continue;
             }
-            if (!onlyCommonPrefixes || id.endsWith("/") || id.endsWith("#")) {
+            if (id.endsWith("/") || id.endsWith("#")) {
                 prefixes.put(term, id);
             }
         }
         return prefixes;
-    }
-
-    String compactIri(String iri, boolean relativeToVocab) {
-        return compactIri(iri, null, relativeToVocab, false);
-    }
-
-    String compactIri(String iri) {
-        return compactIri(iri, null, false, false);
     }
 
     @Override
@@ -872,21 +886,22 @@ public class Context extends LinkedHashMap<String, Object> {
         final Context rval = (Context) super.clone();
         // TODO: is this shallow copy enough? probably not, but it passes all
         // the tests!
-        rval.termDefinitions = new LinkedHashMap<String, Object>(this.termDefinitions);
+        rval.termDefinitions = new LinkedHashMap<>(this.termDefinitions);
         return rval;
     }
 
     /**
      * Inverse Context Creation
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#inverse-context-creation
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#inverse-context-creation
      *
-     * Generates an inverse context for use in the compaction algorithm, if not
+     * <p>Generates an inverse context for use in the compaction algorithm, if not
      * already generated for the given active context.
      *
      * @return the inverse context.
      */
-    public Map<String, Object> getInverse() {
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getInverse() {
 
         // lazily create inverse
         if (inverse != null) {
@@ -904,13 +919,8 @@ public class Context extends LinkedHashMap<String, Object> {
 
         // create term selections for each mapping in the context, ordererd by
         // shortest and then lexicographically least
-        final List<String> terms = new ArrayList<String>(termDefinitions.keySet());
-        Collections.sort(terms, new Comparator<String>() {
-            @Override
-            public int compare(String a, String b) {
-                return compareShortestLeast(a, b);
-            }
-        });
+        final List<String> terms = new ArrayList<>(termDefinitions.keySet());
+        terms.sort(JsonLdUtils::compareShortestLeast);
 
         for (final String term : terms) {
             final Map<String, Object> definition = (Map<String, Object>) termDefinitions.get(term);
@@ -998,9 +1008,9 @@ public class Context extends LinkedHashMap<String, Object> {
     /**
      * Term Selection
      *
-     * http://json-ld.org/spec/latest/json-ld-api/#term-selection
+     * <p>http://json-ld.org/spec/latest/json-ld-api/#term-selection
      *
-     * This algorithm, invoked via the IRI Compaction algorithm, makes use of an
+     * <p>This algorithm, invoked via the IRI Compaction algorithm, makes use of an
      * active context's inverse context to find the term that is best used to
      * compact an IRI. Other information about a value associated with the IRI
      * is given, including which container mappings and which type mapping or
@@ -1008,8 +1018,9 @@ public class Context extends LinkedHashMap<String, Object> {
      *
      * @return the selected term.
      */
+    @SuppressWarnings("unchecked")
     private String selectTerm(String iri, List<String> containers, String typeLanguage,
-            List<String> preferredValues) {
+                              List<String> preferredValues) {
         final Map<String, Object> inv = getInverse();
         // 1)
         final Map<String, Object> containerMap = (Map<String, Object>) inv.get(iri);
@@ -1042,11 +1053,11 @@ public class Context extends LinkedHashMap<String, Object> {
     /**
      * Retrieve container mapping.
      *
-     * @param property
-     *            The Property to get a container mapping for.
+     * @param property The Property to get a container mapping for.
      * @return The container mapping
      */
-    public String getContainer(String property) {
+    @SuppressWarnings("unchecked")
+    String getContainer(String property) {
         if (JsonLdConsts.GRAPH.equals(property)) {
             return JsonLdConsts.SET;
         }
@@ -1060,7 +1071,8 @@ public class Context extends LinkedHashMap<String, Object> {
         return (String) td.get(JsonLdConsts.CONTAINER);
     }
 
-    public Boolean isReverseProperty(String property) {
+    @SuppressWarnings("unchecked")
+    Boolean isReverseProperty(String property) {
         final Map<String, Object> td = (Map<String, Object>) termDefinitions.get(property);
         if (td == null) {
             return false;
@@ -1069,6 +1081,7 @@ public class Context extends LinkedHashMap<String, Object> {
         return reverse != null && (Boolean) reverse;
     }
 
+    @SuppressWarnings("unchecked")
     private String getTypeMapping(String property) {
         final Map<String, Object> td = (Map<String, Object>) termDefinitions.get(property);
         if (td == null) {
@@ -1077,6 +1090,7 @@ public class Context extends LinkedHashMap<String, Object> {
         return (String) td.get(JsonLdConsts.TYPE);
     }
 
+    @SuppressWarnings("unchecked")
     private String getLanguageMapping(String property) {
         final Map<String, Object> td = (Map<String, Object>) termDefinitions.get(property);
         if (td == null) {
@@ -1085,11 +1099,12 @@ public class Context extends LinkedHashMap<String, Object> {
         return (String) td.get(JsonLdConsts.LANGUAGE);
     }
 
-    Map<String, Object> getTermDefinition(String key) {
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getTermDefinition(String key) {
         return ((Map<String, Object>) termDefinitions.get(key));
     }
 
-    public Object expandValue(String activeProperty, Object value) throws JsonLdError {
+    Object expandValue(String activeProperty, Object value) throws JsonLdError {
         final Map<String, Object> rval = newMap();
         final Map<String, Object> td = getTermDefinition(activeProperty);
         // 1)
@@ -1128,7 +1143,8 @@ public class Context extends LinkedHashMap<String, Object> {
         return rval;
     }
 
-    public Map<String, Object> serialize() {
+    @SuppressWarnings("unchecked")
+    Map<String, Object> serialize() {
         final Map<String, Object> ctx = newMap();
         if (this.get(JsonLdConsts.BASE) != null
                 && !this.get(JsonLdConsts.BASE).equals(options.getBase())) {
@@ -1146,7 +1162,7 @@ public class Context extends LinkedHashMap<String, Object> {
                     && definition.get(JsonLdConsts.CONTAINER) == null
                     && definition.get(JsonLdConsts.TYPE) == null
                     && (definition.get(JsonLdConsts.REVERSE) == null
-                            || Boolean.FALSE.equals(definition.get(JsonLdConsts.REVERSE)))) {
+                    || Boolean.FALSE.equals(definition.get(JsonLdConsts.REVERSE)))) {
                 final String cid = this.compactIri((String) definition.get(JsonLdConsts.ID));
                 ctx.put(term, term.equals(cid) ? definition.get(JsonLdConsts.ID) : cid);
             } else {
@@ -1174,7 +1190,7 @@ public class Context extends LinkedHashMap<String, Object> {
         }
 
         final Map<String, Object> rval = newMap();
-        if (!(ctx == null || ctx.isEmpty())) {
+        if (!ctx.isEmpty()) {
             rval.put(JsonLdConsts.CONTEXT, ctx);
         }
         return rval;

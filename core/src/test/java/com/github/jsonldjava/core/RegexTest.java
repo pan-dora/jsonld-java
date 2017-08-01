@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.core;
 
 import static org.junit.Assert.assertEquals;
@@ -37,27 +65,37 @@ public class RegexTest {
 
     @Test
     public void test_PN_CHARS_BASE() throws IOException {
-        final String test = "\u0041\u005A\u0061\u007A\u00C0\u00D6\u00D8\u00F6\u00F8\u02FF\u0370\u037D\u037F\u1FFF\u200C\u200D\u2070\u218F\u2C00\u2FEF\u3001\uD7FF\uF900\uFDCF\uFDF0\uFFFD\uD800\uDC00\uDB7F\uDFFF";
+        final String test = "\u0041\u005A\u0061\u007A\u00C0\u00D6\u00D8\u00F6\u00F8\u02FF\u0370"
+                + "\u037D\u037F\u1FFF\u200C\u200D\u2070\u218F\u2C00\u2FEF\u3001\uD7FF\uF900\uFDCF"
+                + "\uFDF0\uFFFD\uD800\uDC00\uDB7F\uDFFF";
         assertTrue(test.matches("^(?:" + Regex.PN_CHARS_BASE + ")+$"));
         assertFalse("_".matches("^" + Regex.PN_CHARS_BASE + "$"));
     }
 
     @Test
     public void test_PN_CHARS_U() {
-        final String test = "\u0041\u005A\u0061__\u007A\u00C0\u00D6\u00D8\u00F6\u00F8\u02FF\u0370\u037D\u037F\u1FFF\u200C\u200D\u2070\u218F\u2C00\u2FEF\u3001\uD7FF\uF900\uFDCF\uFDF0\uFFFD\uD800\uDC00\uDB7F\uDFFF";
+        final String test = "\u0041\u005A\u0061__\u007A\u00C0\u00D6\u00D8\u00F6\u00F8\u02FF\u0370"
+                + "\u037D\u037F\u1FFF\u200C\u200D\u2070\u218F\u2C00\u2FEF\u3001\uD7FF\uF900\uFDCF"
+                + "\uFDF0\uFFFD\uD800\uDC00\uDB7F\uDFFF";
         assertTrue(test.matches("^(?:" + Regex.PN_CHARS_U + ")+$"));
     }
 
     @Test
     public void test_PN_CHARS() {
-        final String test = "\u0041\u005A\u0061_-_\u007A\u00C0\u00D6\u00D8\u00F6\u00F8\u02FF\u0370\u037D\u037F\u1FFF\u200C\u200D\u2070\u218F\u2C00\u2FEF\u3001\uD7FF\uF900\uFDCF\uFDF0\uFFFD\uD800\uDC00\uDB7F\uDFFF";
+        final String test = "\u0041\u005A\u0061_-_\u007A\u00C0\u00D6\u00D8\u00F6\u00F8\u02FF"
+                + "\u0370\u037D\u037F\u1FFF\u200C\u200D\u2070\u218F\u2C00\u2FEF\u3001\uD7FF\uF900"
+                + "\uFDCF\uFDF0\uFFFD\uD800\uDC00\uDB7F\uDFFF";
         assertTrue(test.matches("^(?:" + Regex.PN_CHARS + ")+$"));
     }
 
     @Test
     public void test_PN_PREFIX() {
-        final String testT = "\u0041\u005A\u0061.\u007A\u00C0\u00D6\u00D8\u00F6\u00F8\u02FF\u0370\u037D\u037F\u1FFF\u200C\u200D\u2070\u218F\u2C00\u2FEF\u3001\uD7FF\uF900\uFDCF\uFDF0\uFFFD\uD800\uDC00\uDB7F\uDFFF";
-        final String testF = "\u0041\u005A\u0061.\u007A\u00C0\u00D6\u00D8\u00F6\u00F8\u02FF\u0370\u037D\u037F\u1FFF\u200C\u200D\u2070\u218F\u2C00\u2FEF\u3001\uD7FF\uF900\uFDCF\uFDF0\uFFFD\uD800\uDC00\uDB7F\uDFFF.";
+        final String testT = "\u0041\u005A\u0061.\u007A\u00C0\u00D6\u00D8\u00F6\u00F8\u02FF\u0370"
+                + "\u037D\u037F\u1FFF\u200C\u200D\u2070\u218F\u2C00\u2FEF\u3001\uD7FF\uF900\uFDCF"
+                + "\uFDF0\uFFFD\uD800\uDC00\uDB7F\uDFFF";
+        final String testF = "\u0041\u005A\u0061.\u007A\u00C0\u00D6\u00D8\u00F6\u00F8\u02FF\u0370"
+                + "\u037D\u037F\u1FFF\u200C\u200D\u2070\u218F\u2C00\u2FEF\u3001\uD7FF\uF900\uFDCF"
+                + "\uFDF0\uFFFD\uD800\uDC00\uDB7F\uDFFF.";
         assertTrue(testT.matches("^" + Regex.PN_PREFIX + "$"));
         assertFalse(testF.matches("^" + Regex.PN_PREFIX + "$"));
         assertFalse("_:b".matches("^" + Regex.PN_PREFIX + "$"));
@@ -200,21 +238,29 @@ public class RegexTest {
         assertTrue("\t\u007A\uDB80\uDC00\uD800\uDC00\n".equals(r));
 
         r = RDFDatasetUtils.unescape(
-                "http://a.example/AZaz\u00c0\u00d6\u00d8\u00f6\u00f8\u02ff\u0370\u037d\u0384\u1ffe\u200c\u200d\u2070\u2189\u2c00\u2fd5\u3001\ud7fb\ufa0e\ufdc7\ufdf0\uffef");
+                "http://a.example/AZaz\u00c0\u00d6\u00d8\u00f6\u00f8\u02ff\u0370\u037d\u0384"
+                        + "\u1ffe\u200c\u200d\u2070\u2189\u2c00\u2fd5\u3001\ud7fb\ufa0e\ufdc7\ufdf0"
+                        + "\uffef");
         assertTrue(
-                "http://a.example/AZaz\u00c0\u00d6\u00d8\u00f6\u00f8\u02ff\u0370\u037d\u0384\u1ffe\u200c\u200d\u2070\u2189\u2c00\u2fd5\u3001\ud7fb\ufa0e\ufdc7\ufdf0\uffef"
+                ("http://a.example/AZaz\u00c0\u00d6\u00d8\u00f6\u00f8\u02ff\u0370\u037d\u0384"
+                        + "\u1ffe\u200c\u200d\u2070\u2189\u2c00\u2fd5\u3001\ud7fb\ufa0e\ufdc7\ufdf0"
+                        + "\uffef")
                         .equals(r));
 
         r = RDFDatasetUtils.unescape(
-                "http://a.example/AZaz\\u00c0\\u00d6\\u00d8\\u00f6\\u00f8\\u02ff\\u0370\\u037d\\u0384\\u1ffe\\u200c\\u200d\\u2070\\u2189\\u2c00\\u2fd5\\u3001\\ud7fb\\ufa0e\\ufdc7\\ufdf0\\uffef\\U00010000\\U000e01ef");
+                "http://a.example/AZaz\\u00c0\\u00d6\\u00d8\\u00f6\\u00f8\\u02ff\\u0370\\u037d"
+                        + "\\u0384\\u1ffe\\u200c\\u200d\\u2070\\u2189\\u2c00\\u2fd5\\u3001\\ud7fb"
+                        + "\\ufa0e\\ufdc7\\ufdf0\\uffef\\U00010000\\U000e01ef");
         assertTrue(
-                "http://a.example/AZaz\u00c0\u00d6\u00d8\u00f6\u00f8\u02ff\u0370\u037d\u0384\u1ffe\u200c\u200d\u2070\u2189\u2c00\u2fd5\u3001\ud7fb\ufa0e\ufdc7\ufdf0\uffef\uD800\uDC00\uDB40\uDDEF"
+                ("http://a.example/AZaz\u00c0\u00d6\u00d8\u00f6\u00f8\u02ff\u0370\u037d\u0384"
+                        + "\u1ffe\u200c\u200d\u2070\u2189\u2c00\u2fd5\u3001\ud7fb\ufa0e\ufdc7\ufdf0"
+                        + "\uffef\uD800\uDC00\uDB40\uDDEF")
                         .equals(r));
     }
 
     @Test
     public void testDoubleRegex() throws Exception {
-        assertTrue(Pattern.matches("^(\\+|-)?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([Ee](\\+|-)?[0-9]+)?$",
+        assertTrue(Pattern.matches("^([+-])?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([Ee]([+-])?[0-9]+)?$",
                 "1.1E-1"));
     }
 }

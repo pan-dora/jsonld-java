@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.core;
 
 import static org.junit.Assert.assertFalse;
@@ -5,11 +33,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.github.jsonldjava.utils.JsonUtils;
+import com.github.jsonldjava.utils.Obj;
+import com.github.jsonldjava.utils.TestUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -35,12 +66,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.github.jsonldjava.utils.JsonUtils;
-import com.github.jsonldjava.utils.Obj;
-import com.github.jsonldjava.utils.TestUtils;
-
 @RunWith(Parameterized.class)
 public class JsonLdProcessorTest {
 
@@ -51,6 +76,7 @@ public class JsonLdProcessorTest {
     private static String ASSERTOR = "http://tristan.github.com/foaf#me";
 
     @BeforeClass
+    @SuppressWarnings("unchecked")
     public static void prepareReportFrame() {
         REPORT = new LinkedHashMap<String, Object>() {
             {
@@ -109,7 +135,8 @@ public class JsonLdProcessorTest {
                                 put("doap:description", new LinkedHashMap<String, Object>() {
                                     {
                                         put("@value",
-                                                "An Implementation of the JSON-LD Specification for Java");
+                                                "An Implementation of the JSON-LD Specification "
+                                                        + "for Java");
                                         put("@language", "en");
                                     }
                                 });
@@ -155,7 +182,7 @@ public class JsonLdProcessorTest {
 
     @AfterClass
     public static void writeReport()
-            throws JsonGenerationException, JsonMappingException, IOException, JsonLdError {
+            throws IOException, JsonLdError {
 
         // Only write reports if "-Dreport.format=..." is set
         String reportFormat = System.getProperty("report.format");
@@ -175,6 +202,7 @@ public class JsonLdProcessorTest {
     }
 
     @Parameters(name = "{0}{1}")
+    @SuppressWarnings("unchecked")
     public static Collection<Object[]> data() throws URISyntaxException, IOException {
 
         // TODO: look into getting the test data from github, which will help
@@ -186,23 +214,17 @@ public class JsonLdProcessorTest {
 
         final ClassLoader cl = Thread.currentThread().getContextClassLoader();
         final File f = new File(cl.getResource(TEST_DIR).toURI());
-        final List<File> manifestfiles = Arrays.asList(f.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                if (name.contains("manifest") && name.endsWith(".jsonld")) {
-                    // System.out.println("Using manifest: " + dir + " "
-                    // + name);
-                    // Remote-doc tests are not currently supported
-                    if (name.contains("remote-doc")) {
-                        return false;
-                    }
-                    return true;
-                }
-                return false;
+        final List<File> manifestfiles = Arrays.asList(f.listFiles((dir, name) -> {
+            if (name.contains("manifest") && name.endsWith(".jsonld")) {
+                // System.out.println("Using manifest: " + dir + " "
+                // + name);
+                // Remote-doc tests are not currently supported
+                return !name.contains("remote-doc");
             }
+            return false;
         }));
 
-        final Collection<Object[]> rdata = new ArrayList<Object[]>();
+        final Collection<Object[]> rdata = new ArrayList<>();
         final int count = 0;
         for (final File in : manifestfiles) {
             // System.out.println("Reading: " + in.getCanonicalPath());
@@ -221,8 +243,8 @@ public class JsonLdProcessorTest {
                         || testType.contains("jld:ToRDFTest")
                         || testType.contains("jld:NormalizeTest")) {
                     // System.out.println("Adding test: " + test.get("name"));
-                    rdata.add(new Object[] { (String) manifest.get("baseIri") + in.getName(),
-                            test.get("@id"), test });
+                    rdata.add(new Object[]{manifest.get("baseIri") + in.getName(),
+                            test.get("@id"), test});
                 } else {
                     // TODO: many disabled while implementation is incomplete
                     System.out.println("Skipping test: " + test.get("name"));
@@ -236,14 +258,15 @@ public class JsonLdProcessorTest {
 
         private final String base;
 
-        public TestDocumentLoader(String base) {
+        TestDocumentLoader(String base) {
             this.base = base;
         }
 
         @Override
         public RemoteDocument loadDocument(String url) throws JsonLdError {
             if (url == null) {
-                throw new JsonLdError(JsonLdError.Error.LOADING_REMOTE_CONTEXT_FAILED, "URL was null");
+                throw new JsonLdError(JsonLdError.Error.LOADING_REMOTE_CONTEXT_FAILED, "URL was "
+                        + "null");
             }
             if (url.contains(":")) {
                 // check if the url is relative to the test base
@@ -260,25 +283,26 @@ public class JsonLdProcessorTest {
                 }
             }
             // we can't load this remote document from the test suite
-            throw new JsonLdError(JsonLdError.Error.NOT_IMPLEMENTED, "URL scheme was not recognised: " + url);
+            throw new JsonLdError(JsonLdError.Error.NOT_IMPLEMENTED, "URL scheme was not "
+                    + "recognised: " + url);
         }
 
-        public void setRedirectTo(String string) {
+        void setRedirectTo(String string) {
             // TODO Auto-generated method stub
 
         }
 
-        public void setHttpStatus(Integer integer) {
+        void setHttpStatus(Integer integer) {
             // TODO Auto-generated method stub
 
         }
 
-        public void setContentType(String string) {
+        void setContentType(String string) {
             // TODO Auto-generated method stub
 
         }
 
-        public void addHttpLink(String nextLink) {
+        void addHttpLink(String nextLink) {
             // TODO Auto-generated method stub
 
         }
@@ -290,23 +314,22 @@ public class JsonLdProcessorTest {
     @Rule
     public TemporaryFolder tempDir = new TemporaryFolder();
 
-    private File testDir;
-
     private final String group;
     private final Map<String, Object> test;
 
     public JsonLdProcessorTest(final String group, final String id,
-            final Map<String, Object> test) {
+                               final Map<String, Object> test) {
         this.group = group;
         this.test = test;
     }
 
     @Before
     public void setUp() throws Exception {
-        testDir = tempDir.newFolder("jsonld");
+        File testDir = tempDir.newFolder("jsonld");
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void runTest() throws URISyntaxException, IOException, JsonLdError {
         // System.out.println("running test: " + group + test.get("@id") +
         // " :: " + test.get("name"));
@@ -323,7 +346,7 @@ public class JsonLdProcessorTest {
         if (inputType.equals("jsonld")) {
             input = JsonUtils.fromInputStream(inputStream);
         } else if (inputType.equals("nt") || inputType.equals("nq")) {
-            final List<String> inputLines = new ArrayList<String>();
+            final List<String> inputLines = new ArrayList<>();
             final BufferedReader buf = new BufferedReader(
                     new InputStreamReader(inputStream, "UTF-8"));
             String line;
@@ -338,7 +361,7 @@ public class JsonLdProcessorTest {
             input = TestUtils.join(inputLines, "\n");
         }
         Object expect = null;
-        String sparql = null;
+        StringBuilder sparql = null;
         Boolean failure_expected = false;
         final String expectFile = (String) test.get("expect");
         final String sparqlFile = (String) test.get("sparql");
@@ -353,25 +376,30 @@ public class JsonLdProcessorTest {
                 assertFalse("Unable to find expect file: " + expectFile, true);
             } else {
                 final String expectType = expectFile.substring(expectFile.lastIndexOf(".") + 1);
-                if (expectType.equals("jsonld")) {
-                    expect = JsonUtils.fromInputStream(expectStream);
-                } else if (expectType.equals("nt") || expectType.equals("nq")) {
-                    final List<String> expectLines = new ArrayList<String>();
-                    final BufferedReader buf = new BufferedReader(
-                            new InputStreamReader(expectStream, "UTF-8"));
-                    String line;
-                    while ((line = buf.readLine()) != null) {
-                        line = line.trim();
-                        if (line.length() == 0 || line.charAt(0) == '#') {
-                            continue;
+                switch (expectType) {
+                    case "jsonld":
+                        expect = JsonUtils.fromInputStream(expectStream);
+                        break;
+                    case "nt":
+                    case "nq":
+                        final List<String> expectLines = new ArrayList<>();
+                        final BufferedReader buf = new BufferedReader(
+                                new InputStreamReader(expectStream, "UTF-8"));
+                        String line;
+                        while ((line = buf.readLine()) != null) {
+                            line = line.trim();
+                            if (line.length() == 0 || line.charAt(0) == '#') {
+                                continue;
+                            }
+                            expectLines.add(line);
                         }
-                        expectLines.add(line);
-                    }
-                    Collections.sort(expectLines);
-                    expect = TestUtils.join(expectLines, "\n");
-                } else {
-                    expect = "";
-                    assertFalse("Unknown expect type: " + expectType, true);
+                        Collections.sort(expectLines);
+                        expect = TestUtils.join(expectLines, "\n");
+                        break;
+                    default:
+                        expect = "";
+                        assertFalse("Unknown expect type: " + expectType, true);
+                        break;
                 }
             }
         } else if (sparqlFile != null) {
@@ -379,9 +407,9 @@ public class JsonLdProcessorTest {
             assertNotNull("unable to find expect file: " + sparqlFile, sparqlStream);
             final BufferedReader buf = new BufferedReader(
                     new InputStreamReader(sparqlStream, "UTF-8"));
-            String buffer = null;
+            String buffer;
             while ((buffer = buf.readLine()) != null) {
-                sparql += buffer + "\n";
+                sparql.append(buffer).append("\n");
             }
         } else if (testType.contains("jld:NegativeEvaluationTest")) {
             failure_expected = true;
@@ -496,7 +524,7 @@ public class JsonLdProcessorTest {
             e.printStackTrace();
         }
 
-        if (testpassed == false && result instanceof JsonLdError) {
+        if (!testpassed && result instanceof JsonLdError) {
             throw (JsonLdError) result;
         }
 
@@ -556,9 +584,10 @@ public class JsonLdProcessorTest {
         });
 
         assertTrue("\nFailed test: " + group + test.get("@id") + " " + test.get("name") + " ("
-                + test.get("input") + "," + test.get("expect") + ")\n" + "expected: "
-                + JsonUtils.toPrettyString(expect) + "\nresult: " + (result instanceof JsonLdError
-                        ? ((JsonLdError) result).toString() : JsonUtils.toPrettyString(result)),
+                        + test.get("input") + "," + test.get("expect") + ")\n" + "expected: "
+                        + JsonUtils.toPrettyString(expect) + "\nresult: " + (result
+                        instanceof JsonLdError
+                        ? result.toString() : JsonUtils.toPrettyString(result)),
                 testpassed);
     }
 

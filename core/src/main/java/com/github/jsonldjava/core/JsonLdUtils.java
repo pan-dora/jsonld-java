@@ -1,44 +1,72 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.core;
 
-import static com.github.jsonldjava.utils.Obj.newMap;
+import com.github.jsonldjava.utils.Obj;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.github.jsonldjava.utils.JsonLdUrl;
-import com.github.jsonldjava.utils.Obj;
+/**
+ * JsonLdUtils.
+ *
+ * @author @tristan
+ * @author Peter Ansell p_ansell@yahoo.com
+ */
+class JsonLdUtils {
 
-public class JsonLdUtils {
+    private JsonLdUtils() {
+    }
 
     private static final int MAX_CONTEXT_URLS = 10;
 
     /**
      * Returns whether or not the given value is a keyword (or a keyword alias).
      *
-     * @param v
-     *            the value to check.
-     * @param [ctx]
-     *            the active context to check against.
-     *
+     * @param key the value to check.
      * @return true if the value is a keyword, false if not.
      */
     static boolean isKeyword(Object key) {
-        if (!isString(key)) {
-            return false;
-        }
-        return "@base".equals(key) || "@context".equals(key) || "@container".equals(key)
+        return isString(key) && ("@base".equals(key) || "@context".equals(key) || "@container"
+                .equals(key)
                 || "@default".equals(key) || "@embed".equals(key) || "@explicit".equals(key)
-                || "@graph".equals(key) || "@id".equals(key) || "@index".equals(key)
-                || "@language".equals(key) || "@list".equals(key) || "@omitDefault".equals(key)
-                || "@reverse".equals(key) || "@preserve".equals(key) || "@set".equals(key)
-                || "@type".equals(key) || "@value".equals(key) || "@vocab".equals(key);
+                || "@graph".equals(key)
+                || "@id".equals(key) || "@index".equals(key) || "@language".equals(key) || "@list"
+                .equals(key)
+                || "@omitDefault".equals(key) || "@reverse".equals(key) || "@preserve".equals(key)
+                || "@set".equals(key)
+                || "@type".equals(key) || "@value".equals(key) || "@vocab".equals(key));
     }
 
-    public static Boolean deepCompare(Object v1, Object v2, Boolean listOrderMatters) {
+    @SuppressWarnings("unchecked")
+    private static Boolean deepCompare(Object v1, Object v2, Boolean listOrderMatters) {
         if (v1 == null) {
             return v2 == null;
         } else if (v2 == null) {
@@ -90,11 +118,11 @@ public class JsonLdUtils {
         }
     }
 
-    public static Boolean deepCompare(Object v1, Object v2) {
+    static Boolean deepCompare(Object v1, Object v2) {
         return deepCompare(v1, v2, false);
     }
 
-    public static boolean deepContains(List<Object> values, Object value) {
+    private static boolean deepContains(List<Object> values, Object value) {
         for (final Object item : values) {
             if (deepCompare(item, value, false)) {
                 return true;
@@ -103,13 +131,14 @@ public class JsonLdUtils {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     static void mergeValue(Map<String, Object> obj, String key, Object value) {
         if (obj == null) {
             return;
         }
         List<Object> values = (List<Object>) obj.get(key);
         if (values == null) {
-            values = new ArrayList<Object>();
+            values = new ArrayList<>();
             obj.put(key, values);
         }
         if ("@list".equals(key)
@@ -119,13 +148,14 @@ public class JsonLdUtils {
         }
     }
 
+    @SuppressWarnings("unchecked")
     static void laxMergeValue(Map<String, Object> obj, String key, Object value) {
         if (obj == null) {
             return;
         }
         List<Object> values = (List<Object>) obj.get(key);
         if (values == null) {
-            values = new ArrayList<Object>();
+            values = new ArrayList<>();
             obj.put(key, values);
         }
         // if ("@list".equals(key)
@@ -137,7 +167,7 @@ public class JsonLdUtils {
         // }
     }
 
-    public static boolean isAbsoluteIri(String value) {
+    static boolean isAbsoluteIri(String value) {
         // TODO: this is a bit simplistic!
         return value.contains(":");
     }
@@ -145,31 +175,28 @@ public class JsonLdUtils {
     /**
      * Returns true if the given value is a subject with properties.
      *
-     * @param v
-     *            the value to check.
-     *
+     * @param v the value to check.
      * @return true if the value is a subject with properties, false if not.
      */
+    @SuppressWarnings("unchecked")
     static boolean isNode(Object v) {
         // Note: A value is a subject if all of these hold true:
         // 1. It is an Object.
         // 2. It is not a @value, @set, or @list.
         // 3. It has more than 1 key OR any existing key is not @id.
-        if (v instanceof Map && !(((Map) v).containsKey("@value") || ((Map) v).containsKey("@set")
-                || ((Map) v).containsKey("@list"))) {
-            return ((Map<String, Object>) v).size() > 1 || !((Map) v).containsKey("@id");
-        }
-        return false;
+        return v instanceof Map && !(((Map) v).containsKey("@value") || ((Map) v).containsKey(
+                "@set") || ((Map) v)
+                .containsKey("@list")) && (((Map<String, Object>) v).size() > 1 || !((Map) v)
+                .containsKey("@id"));
     }
 
     /**
      * Returns true if the given value is a subject reference.
      *
-     * @param v
-     *            the value to check.
-     *
+     * @param v the value to check.
      * @return true if the value is a subject reference, false if not.
      */
+    @SuppressWarnings("unchecked")
     static boolean isNodeReference(Object v) {
         // Note: A value is a subject reference if all of these hold true:
         // 1. It is an Object.
@@ -179,30 +206,24 @@ public class JsonLdUtils {
     }
 
     // TODO: fix this test
-    public static boolean isRelativeIri(String value) {
-        if (!(isKeyword(value) || isAbsoluteIri(value))) {
-            return true;
-        }
-        return false;
+    static boolean isRelativeIri(String value) {
+        return !(isKeyword(value) || isAbsoluteIri(value));
     }
 
     /**
      * Removes the @preserve keywords as the last step of the framing algorithm.
      *
-     * @param ctx
-     *            the active context used to compact the input.
-     * @param input
-     *            the framed, compacted output.
-     * @param options
-     *            the compaction options used.
-     *
+     * @param ctx the active context used to compact the input.
+     * @param input the framed, compacted output.
+     * @param opts the compaction options used.
      * @return the resulting output.
-     * @throws JsonLdError
+     * @throws JsonLdError JsonLdError
      */
+    @SuppressWarnings("unchecked")
     static Object removePreserve(Context ctx, Object input, JsonLdOptions opts) throws JsonLdError {
         // recurse through arrays
         if (isArray(input)) {
-            final List<Object> output = new ArrayList<Object>();
+            final List<Object> output = new ArrayList<>();
             for (final Object i : (List<Object>) input) {
                 final Object result = removePreserve(ctx, i, opts);
                 // drop nulls from arrays
@@ -249,11 +270,8 @@ public class JsonLdUtils {
     /**
      * Compares two strings first based on length and then lexicographically.
      *
-     * @param a
-     *            the first string.
-     * @param b
-     *            the second string.
-     *
+     * @param a the first string.
+     * @param b the second string.
      * @return -1 if a < b, 1 if a > b, 0 if a == b.
      */
     static int compareShortestLeast(String a, String b) {
@@ -269,50 +287,37 @@ public class JsonLdUtils {
      * Compares two JSON-LD values for equality. Two JSON-LD values will be
      * considered equal if:
      *
-     * 1. They are both primitives of the same type and value. 2. They are
+     * <p>1. They are both primitives of the same type and value. 2. They are
      * both @values with the same @value, @type, and @language, OR 3. They both
      * have @ids they are the same.
      *
-     * @param v1
-     *            the first value.
-     * @param v2
-     *            the second value.
-     *
+     * @param v1 the first value.
+     * @param v2 the second value.
      * @return true if v1 and v2 are considered equal, false if not.
      */
+    @SuppressWarnings("unchecked")
     static boolean compareValues(Object v1, Object v2) {
-        if (v1.equals(v2)) {
-            return true;
-        }
+        return v1.equals(v2) || isValue(v1) && isValue(v2) && Obj.equals(((Map<String, Object>)
+                v1).get("@value"), (
+                (Map<String, Object>) v2).get("@value")) && Obj.equals(((Map<String, Object>) v1)
+                .get("@type"), (
+                (Map<String, Object>) v2).get("@type")) && Obj.equals(((Map<String, Object>) v1)
+                .get(
+                "@language"), ((Map<String, Object>) v2).get("@language")) && Obj.equals((
+                (Map<String, Object>) v1)
+                .get("@index"), ((Map<String, Object>) v2).get("@index")) || (v1 instanceof Map
+                && ((Map<String,
+                Object>) v1).containsKey("@id")) && (v2 instanceof Map && ((Map<String, Object>)
+                v2).containsKey(
+                "@id")) && ((Map<String, Object>) v1).get("@id").equals(((Map<String, Object>)
+                v2).get("@id"));
 
-        if (isValue(v1) && isValue(v2)
-                && Obj.equals(((Map<String, Object>) v1).get("@value"),
-                        ((Map<String, Object>) v2).get("@value"))
-                && Obj.equals(((Map<String, Object>) v1).get("@type"),
-                        ((Map<String, Object>) v2).get("@type"))
-                && Obj.equals(((Map<String, Object>) v1).get("@language"),
-                        ((Map<String, Object>) v2).get("@language"))
-                && Obj.equals(((Map<String, Object>) v1).get("@index"),
-                        ((Map<String, Object>) v2).get("@index"))) {
-            return true;
-        }
-
-        if ((v1 instanceof Map && ((Map<String, Object>) v1).containsKey("@id"))
-                && (v2 instanceof Map && ((Map<String, Object>) v2).containsKey("@id"))
-                && ((Map<String, Object>) v1).get("@id")
-                        .equals(((Map<String, Object>) v2).get("@id"))) {
-            return true;
-        }
-
-        return false;
     }
 
     /**
      * Returns true if the given value is a blank node.
      *
-     * @param v
-     *            the value to check.
-     *
+     * @param v the value to check.
      * @return true if the value is a blank node, false if not.
      */
     static boolean isBlankNode(Object v) {
@@ -331,7 +336,8 @@ public class JsonLdUtils {
         return false;
     }
 
-    static Object clone(Object value) {// throws
+    static Object clone(Object value) {
+        // throws
         // CloneNotSupportedException {
         Object rval = null;
         if (value instanceof Cloneable) {
@@ -354,62 +360,59 @@ public class JsonLdUtils {
                 // and means that
                 // the input JSON-LD is invalid
                 throw new RuntimeException(new CloneNotSupportedException(
-                        (rval instanceof Exception ? ((Exception) rval).getMessage() : "")));
+                        (rval != null ? ((Exception) rval).getMessage() : "")));
             }
         }
         return rval;
     }
 
     /**
-     * Returns true if the given value is a JSON-LD Array
+     * Returns true if the given value is a JSON-LD Array.
      *
-     * @param v
-     *            the value to check.
-     * @return
+     * @param v the value to check.
+     * @return boolean
      */
-    static Boolean isArray(Object v) {
+    private static Boolean isArray(Object v) {
         return (v instanceof List);
     }
 
     /**
-     * Returns true if the given value is a JSON-LD List
+     * Returns true if the given value is a JSON-LD List.
      *
-     * @param v
-     *            the value to check.
-     * @return
+     * @param v the value to check.
+     * @return boolean
      */
+    @SuppressWarnings("unchecked")
     static Boolean isList(Object v) {
         return (v instanceof Map && ((Map<String, Object>) v).containsKey("@list"));
     }
 
     /**
-     * Returns true if the given value is a JSON-LD Object
+     * Returns true if the given value is a JSON-LD Object.
      *
-     * @param v
-     *            the value to check.
-     * @return
+     * @param v the value to check.
+     * @return boolean
      */
     static Boolean isObject(Object v) {
         return (v instanceof Map);
     }
 
     /**
-     * Returns true if the given value is a JSON-LD value
+     * Returns true if the given value is a JSON-LD value.
      *
-     * @param v
-     *            the value to check.
-     * @return
+     * @param v the value to check.
+     * @return boolean
      */
+    @SuppressWarnings("unchecked")
     static Boolean isValue(Object v) {
         return (v instanceof Map && ((Map<String, Object>) v).containsKey("@value"));
     }
 
     /**
-     * Returns true if the given value is a JSON-LD string
+     * Returns true if the given value is a JSON-LD string.
      *
-     * @param v
-     *            the value to check.
-     * @return
+     * @param v the value to check.
+     * @return boolean
      */
     static Boolean isString(Object v) {
         // TODO: should this return true for arrays of strings as well?

@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.core;
 
 import static com.github.jsonldjava.core.JsonLdConsts.RDF_FIRST;
@@ -34,37 +62,36 @@ import java.util.regex.Pattern;
  * new format.
  *
  * @author Tristan
- *
  */
 public class RDFDataset extends LinkedHashMap<String, Object> {
     private static final long serialVersionUID = 2796344994239879165L;
 
     private static final Pattern PATTERN_INTEGER = Pattern.compile("^[\\-+]?[0-9]+$");
     private static final Pattern PATTERN_DOUBLE = Pattern
-            .compile("^(\\+|-)?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([Ee](\\+|-)?[0-9]+)?$");
+            .compile("^([+-])?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([Ee]([+-])?[0-9]+)?$");
 
     public static class Quad extends LinkedHashMap<String, Object> implements Comparable<Quad> {
         private static final long serialVersionUID = -7021918051975883082L;
 
         public Quad(final String subject, final String predicate, final String object,
-                final String graph) {
+             final String graph) {
             this(subject, predicate,
                     object.startsWith("_:") ? new BlankNode(object) : new IRI(object), graph);
-        };
+        }
 
         public Quad(final String subject, final String predicate, final String value,
-                final String datatype, final String language, final String graph) {
+             final String datatype, final String language, final String graph) {
             this(subject, predicate, new Literal(value, datatype, language), graph);
-        };
+        }
 
         private Quad(final String subject, final String predicate, final Node object,
-                final String graph) {
+                     final String graph) {
             this(subject.startsWith("_:") ? new BlankNode(subject) : new IRI(subject),
                     new IRI(predicate), object, graph);
-        };
+        }
 
         public Quad(final Node subject, final Node predicate, final Node object,
-                final String graph) {
+             final String graph) {
             super();
             put("subject", subject);
             put("predicate", predicate);
@@ -113,7 +140,7 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
         }
     }
 
-    public static abstract class Node extends LinkedHashMap<String, Object>
+    public abstract static class Node extends LinkedHashMap<String, Object>
             implements Comparable<Node> {
         private static final long serialVersionUID = 1460990331795672793L;
 
@@ -159,7 +186,7 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
                     return -1; // literals < blanknode < IRI
                 }
             }
-            // NOTE: Literal will also need to compare 
+            // NOTE: Literal will also need to compare
             // language and datatype
             return this.getValue().compareTo(o.getValue());
         }
@@ -167,13 +194,9 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
         /**
          * Converts an RDF triple object to a JSON-LD object.
          *
-         * @param o
-         *            the RDF triple object to convert.
-         * @param useNativeTypes
-         *            true to output native types, false not to.
-         *
+         * @param useNativeTypes true to output native types, false not to.
          * @return the JSON-LD object.
-         * @throws JsonLdError
+         * @throws JsonLdError JsonLdError
          */
         Map<String, Object> toObject(Boolean useNativeTypes) throws JsonLdError {
             // If value is an an IRI or a blank node identifier, return a new
@@ -209,10 +232,10 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
                             rval.put("@type", type);
                         }
                     } else if (
-                    // http://www.w3.org/TR/xmlschema11-2/#integer
-                    (XSD_INTEGER.equals(type) && PATTERN_INTEGER.matcher(value).matches())
-                            // http://www.w3.org/TR/xmlschema11-2/#nt-doubleRep
-                            || (XSD_DOUBLE.equals(type)
+                        // http://www.w3.org/TR/xmlschema11-2/#integer
+                            (XSD_INTEGER.equals(type) && PATTERN_INTEGER.matcher(value).matches())
+                                    // http://www.w3.org/TR/xmlschema11-2/#nt-doubleRep
+                                    || (XSD_DOUBLE.equals(type)
                                     && PATTERN_DOUBLE.matcher(value).matches())) {
                         try {
                             final Double d = Double.parseDouble(value);
@@ -226,7 +249,9 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
                                     rval.put("@value", d);
                                 } else {
                                     throw new RuntimeException(
-                                            "This should never happen as we checked the type was either integer or double");
+                                            "This should never happen as we checked the type was "
+                                                    + "either integer or "
+                                                    + "double");
                                 }
                             }
                         } catch (final NumberFormatException e) {
@@ -275,12 +300,12 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
             return false;
         }
 
-        @SuppressWarnings("rawtypes")
+        @SuppressWarnings({"rawtypes", "unchecked"})
         private static int nullSafeCompare(Comparable a, Comparable b) {
             if (a == null && b == null) {
                 return 0;
             }
-            if (a == null) { 
+            if (a == null) {
                 return 1;
             }
             if (b == null) {
@@ -294,7 +319,7 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
             // NOTE: this will also compare getValue() early!
             int nodeCompare = super.compareTo(o);
             if (nodeCompare != 0) {
-                // null, different type or different value 
+                // null, different type or different value
                 return nodeCompare;
             }
             if (this.getLanguage() != null || o.getLanguage() != null) {
@@ -371,7 +396,7 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
     public RDFDataset() {
         super();
         put("@default", new ArrayList<Quad>());
-        context = new LinkedHashMap<String, String>();
+        context = new LinkedHashMap<>();
         // put("@context", context);
     }
 
@@ -395,7 +420,7 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * clears all the namespaces in this dataset
+     * clears all the namespaces in this dataset.
      */
     public void clearNamespaces() {
         context.clear();
@@ -406,7 +431,7 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * Returns a valid context containing any namespaces set
+     * Returns a valid context containing any namespaces set.
      *
      * @return The context map
      */
@@ -421,12 +446,10 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * parses a context object and sets any namespaces found within it
+     * parses a context object and sets any namespaces found within it.
      *
-     * @param contextLike
-     *            The context to parse
-     * @throws JsonLdError
-     *             If the context can't be parsed
+     * @param contextLike The context to parse
+     * @throws JsonLdError If the context can't be parsed
      */
     public void parseContext(Object contextLike) throws JsonLdError {
         Context context;
@@ -438,14 +461,13 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
         // Context will do our recursive parsing and initial IRI resolution
         context = context.parse(contextLike);
         // And then leak to us the potential 'prefixes'
-        final Map<String, String> prefixes = context.getPrefixes(true);
+        final Map<String, String> prefixes = context.getPrefixes();
 
         for (final String key : prefixes.keySet()) {
             final String val = prefixes.get(key);
             if ("@vocab".equals(key)) {
                 if (val == null || isString(val)) {
                     setNamespace("", val);
-                } else {
                 }
             } else if (!isKeyword(key)) {
                 setNamespace(key, val);
@@ -457,81 +479,42 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * Adds a triple to the @default graph of this dataset
+     * Adds a triple to the @default graph of this dataset.
      *
-     * @param subject
-     *            the subject for the triple
-     * @param predicate
-     *            the predicate for the triple
-     * @param value
-     *            the value of the literal object for the triple
-     * @param datatype
-     *            the datatype of the literal object for the triple (null values
-     *            will default to xsd:string)
-     * @param language
-     *            the language of the literal object for the triple (or null)
+     * @param subject   the subject for the triple
+     * @param predicate the predicate for the triple
+     * @param value     the value of the literal object for the triple
+     * @param datatype  the datatype of the literal object for the triple (null values
+     *                  will default to xsd:string)
+     * @param language  the language of the literal object for the triple (or null)
      */
     public void addTriple(final String subject, final String predicate, final String value,
-            final String datatype, final String language) {
+                   final String datatype, final String language) {
         addQuad(subject, predicate, value, datatype, language, "@default");
     }
 
     /**
-     * Adds a triple to the specified graph of this dataset
+     * Adds a triple to the default graph of this dataset.
      *
-     * @param s
-     *            the subject for the triple
-     * @param p
-     *            the predicate for the triple
-     * @param value
-     *            the value of the literal object for the triple
-     * @param datatype
-     *            the datatype of the literal object for the triple (null values
-     *            will default to xsd:string)
-     * @param graph
-     *            the graph to add this triple to
-     * @param language
-     *            the language of the literal object for the triple (or null)
-     */
-    public void addQuad(final String s, final String p, final String value, final String datatype,
-            final String language, String graph) {
-        if (graph == null) {
-            graph = "@default";
-        }
-        if (!containsKey(graph)) {
-            put(graph, new ArrayList<Quad>());
-        }
-        ((ArrayList<Quad>) get(graph)).add(new Quad(s, p, value, datatype, language, graph));
-    }
-
-    /**
-     * Adds a triple to the default graph of this dataset
-     *
-     * @param subject
-     *            the subject for the triple
-     * @param predicate
-     *            the predicate for the triple
-     * @param object
-     *            the object for the triple
+     * @param subject   the subject for the triple
+     * @param predicate the predicate for the triple
+     * @param object    the object for the triple
      */
     public void addTriple(final String subject, final String predicate, final String object) {
         addQuad(subject, predicate, object, "@default");
     }
 
     /**
-     * Adds a triple to the specified graph of this dataset
+     * Adds a triple to the specified graph of this dataset.
      *
-     * @param subject
-     *            the subject for the triple
-     * @param predicate
-     *            the predicate for the triple
-     * @param object
-     *            the object for the triple
-     * @param graph
-     *            the graph to add this triple to
+     * @param subject   the subject for the triple
+     * @param predicate the predicate for the triple
+     * @param object    the object for the triple
+     * @param graph     the graph to add this triple to
      */
+    @SuppressWarnings("unchecked")
     public void addQuad(final String subject, final String predicate, final String object,
-            String graph) {
+                 String graph) {
         if (graph == null) {
             graph = "@default";
         }
@@ -542,25 +525,47 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
     }
 
     /**
+     * Adds a triple to the specified graph of this dataset.
+     *
+     * @param s        the subject for the triple
+     * @param p        the predicate for the triple
+     * @param value    the value of the literal object for the triple
+     * @param datatype the datatype of the literal object for the triple (null values
+     *                 will default to xsd:string)
+     * @param graph    the graph to add this triple to
+     * @param language the language of the literal object for the triple (or null)
+     */
+    @SuppressWarnings("unchecked")
+    public void addQuad(final String s, final String p, final String value, final String datatype,
+                 final String language, String graph) {
+        if (graph == null) {
+            graph = "@default";
+        }
+        if (!containsKey(graph)) {
+            put(graph, new ArrayList<Quad>());
+        }
+        ((ArrayList<Quad>) get(graph)).add(new Quad(s, p, value, datatype, language, graph));
+    }
+
+    /**
      * Creates an array of RDF triples for the given graph.
      *
-     * @param graphName
-     *            The graph URI
-     * @param graph
-     *            the graph to create RDF triples for.
+     * @param graphName The graph URI
+     * @param graph     the graph to create RDF triples for.
      */
-    void graphToRDF(String graphName, Map<String, Object> graph) {
+    @SuppressWarnings("unchecked")
+    public void graphToRDF(String graphName, Map<String, Object> graph) {
         // 4.2)
-        final List<Quad> triples = new ArrayList<Quad>();
+        final List<Quad> triples = new ArrayList<>();
         // 4.3)
-        final List<String> subjects = new ArrayList<String>(graph.keySet());
+        final List<String> subjects = new ArrayList<>(graph.keySet());
         // Collections.sort(subjects);
         for (final String id : subjects) {
             if (JsonLdUtils.isRelativeIri(id)) {
                 continue;
             }
             final Map<String, Object> node = (Map<String, Object>) graph.get(id);
-            final List<String> properties = new ArrayList<String>(node.keySet());
+            final List<String> properties = new ArrayList<>(node.keySet());
             Collections.sort(properties);
             for (String property : properties) {
                 final List<Object> values;
@@ -641,10 +646,10 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
      * Converts a JSON-LD value object to an RDF literal or a JSON-LD string or
      * node object to an RDF resource.
      *
-     * @param item
-     *            the JSON-LD value or node object.
+     * @param item the JSON-LD value or node object.
      * @return the RDF literal or RDF resource.
      */
+    @SuppressWarnings("unchecked")
     private Node objectToRDF(Object item) {
         // convert value object to RDF
         if (isValue(item)) {
@@ -703,6 +708,7 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
         return keySet();
     }
 
+    @SuppressWarnings("unchecked")
     public List<Quad> getQuads(String graphName) {
         return (List<Quad>) get(graphName);
     }

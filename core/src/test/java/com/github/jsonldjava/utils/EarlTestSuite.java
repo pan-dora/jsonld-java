@@ -1,4 +1,36 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.utils;
+
+import com.github.jsonldjava.core.JsonLdError;
+import com.github.jsonldjava.core.JsonLdOptions;
+import com.github.jsonldjava.core.JsonLdProcessor;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,17 +45,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.github.jsonldjava.core.JsonLdError;
-import com.github.jsonldjava.core.JsonLdOptions;
-import com.github.jsonldjava.core.JsonLdProcessor;
-
 public class EarlTestSuite {
 
     private static final String TEMP_DIR = System.getProperty("java.io.tmpdir");
     private static final String FILE_SEP = System.getProperty("file.separator");
     private final String cacheDir;
     private String etag;
-    private Map<String, Object> manifest;
     private List<Map<String, Object>> tests;
 
     public EarlTestSuite(String manifestURL) throws IOException {
@@ -31,20 +58,17 @@ public class EarlTestSuite {
     }
 
     /**
-     * Loads an earl test suite
+     * Loads an earl test suite.
      *
-     * @param manifestURL
-     *            the JsonLdUrl of the manifest file
-     * @param cacheDir
-     *            the base directory to cache the files into
-     * @param etag
-     *            the ETag field to load (useful if you know you have the latest
-     *            manifest cached and don't want to query the server for a new
-     *            one every time you run the tests).
-     * @throws IOException
+     * @param manifestURL the JsonLdUrl of the manifest file
+     * @param cacheDir    the base directory to cache the files into
+     * @param etag        the ETag field to load (useful if you know you have the latest
+     *                    manifest cached and don't want to query the server for a new
+     *                    one every time you run the tests).
+     * @throws IOException IOException
      */
     @SuppressWarnings("unchecked")
-    public EarlTestSuite(String manifestURL, String cacheDir, String etag) throws IOException {
+    private EarlTestSuite(String manifestURL, String cacheDir, String etag) throws IOException {
         if (cacheDir == null) {
             cacheDir = getCacheDir(manifestURL);
         }
@@ -59,6 +83,7 @@ public class EarlTestSuite {
         }
         final String manifestFile = getFile(manifestURL);
 
+        Map<String, Object> manifest;
         if (manifestURL.endsWith(".ttl") || manifestURL.endsWith("nq")
                 || manifestURL.endsWith("nt")) {
             try {
@@ -79,9 +104,9 @@ public class EarlTestSuite {
                 // (e.g. the test entries)
                 rval = JsonLdProcessor.frame(rval, frame, new JsonLdOptions(manifestURL));
                 // compact to remove the @graph label
-                this.manifest = JsonLdProcessor.compact(rval, frame.get("@context"),
+                manifest = JsonLdProcessor.compact(rval, frame.get("@context"),
                         new JsonLdOptions(manifestURL));
-                this.tests = (List<Map<String, Object>>) Obj.get(this.manifest, "mf:entries",
+                this.tests = (List<Map<String, Object>>) Obj.get(manifest, "mf:entries",
                         "@list");
 
             } catch (final JsonLdError e) {
@@ -90,8 +115,8 @@ public class EarlTestSuite {
         } else if (manifestURL.endsWith(".jsonld") || manifestURL.endsWith(".json")) {
             final Object rval = JsonUtils.fromString(manifestFile);
             if (rval instanceof Map) {
-                this.manifest = (Map<String, Object>) rval;
-                this.tests = (List<Map<String, Object>>) Obj.get(this.manifest, "sequence");
+                manifest = (Map<String, Object>) rval;
+                this.tests = (List<Map<String, Object>>) Obj.get(manifest, "sequence");
             } else {
                 throw new RuntimeException("expected JSON manifest file result to be an Object");
             }
@@ -100,8 +125,8 @@ public class EarlTestSuite {
         }
     }
 
-    public String getFile(String url) throws IOException {
-        final JsonLdUrl url_ = JsonLdUrl.parse(url.toString());
+    private String getFile(String url) throws IOException {
+        final JsonLdUrl url_ = JsonLdUrl.parse(url);
         final String fn = this.cacheDir + url_.file + "." + this.etag;
         final File f = new File(fn);
 

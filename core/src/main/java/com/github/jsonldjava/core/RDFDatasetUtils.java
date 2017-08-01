@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.core;
 
 import static com.github.jsonldjava.core.JsonLdConsts.RDF_LANGSTRING;
@@ -10,7 +38,16 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * RDFDatasetUtils.
+ *
+ * @author @tristan
+ * @author Peter Ansell p_ansell@yahoo.com
+ */
 public class RDFDatasetUtils {
+
+    private RDFDatasetUtils() {
+    }
 
     public static String toNQuads(RDFDataset dataset) {
         final StringBuilder output = new StringBuilder(256);
@@ -18,8 +55,8 @@ public class RDFDatasetUtils {
         return output.toString();
     }
 
-    public static void toNQuads(RDFDataset dataset, StringBuilder output) {
-        final List<String> quads = new ArrayList<String>();
+    private static void toNQuads(RDFDataset dataset, StringBuilder output) {
+        final List<String> quads = new ArrayList<>();
         for (String graphName : dataset.graphNames()) {
             final List<RDFDataset.Quad> triples = dataset.getQuads(graphName);
             if ("@default".equals(graphName)) {
@@ -42,7 +79,7 @@ public class RDFDatasetUtils {
     }
 
     static void toNQuad(RDFDataset.Quad triple, String graphName, String bnode,
-            StringBuilder output) {
+                        StringBuilder output) {
         final RDFDataset.Node s = triple.getSubject();
         final RDFDataset.Node p = triple.getPredicate();
         final RDFDataset.Node o = triple.getObject();
@@ -122,10 +159,10 @@ public class RDFDatasetUtils {
         return toNQuad(triple, graphName, null);
     }
 
-    final private static Pattern UCHAR_MATCHED = Pattern
-            .compile("\\u005C(?:([tbnrf\\\"'])|(?:u(" + HEX + "{4}))|(?:U(" + HEX + "{8})))");
+    private static final Pattern UCHAR_MATCHED = Pattern
+            .compile("\\u005C(?:([tbnrf\"'])|(?:u(" + HEX + "{4}))|(?:U(" + HEX + "{8})))");
 
-    public static String unescape(String str) {
+    static String unescape(String str) {
         String rval = str;
         if (str != null) {
             final Matcher m = UCHAR_MATCHED.matcher(str);
@@ -145,7 +182,7 @@ public class RDFDatasetUtils {
                         final int w1 = 0xD800 + vh;
                         final int w2 = 0xDC00 + v1;
 
-                        final StringBuffer b = new StringBuffer();
+                        final StringBuilder b = new StringBuilder();
                         b.appendCodePoint(w1);
                         b.appendCodePoint(w2);
                         uni = b.toString();
@@ -155,33 +192,33 @@ public class RDFDatasetUtils {
                 } else {
                     final char c = m.group(1).charAt(0);
                     switch (c) {
-                    case 'b':
-                        uni = "\b";
-                        break;
-                    case 'n':
-                        uni = "\n";
-                        break;
-                    case 't':
-                        uni = "\t";
-                        break;
-                    case 'f':
-                        uni = "\f";
-                        break;
-                    case 'r':
-                        uni = "\r";
-                        break;
-                    case '\'':
-                        uni = "'";
-                        break;
-                    case '\"':
-                        uni = "\"";
-                        break;
-                    case '\\':
-                        uni = "\\";
-                        break;
-                    default:
-                        // do nothing
-                        continue;
+                        case 'b':
+                            uni = "\b";
+                            break;
+                        case 'n':
+                            uni = "\n";
+                            break;
+                        case 't':
+                            uni = "\t";
+                            break;
+                        case 'f':
+                            uni = "\f";
+                            break;
+                        case 'r':
+                            uni = "\r";
+                            break;
+                        case '\'':
+                            uni = "'";
+                            break;
+                        case '\"':
+                            uni = "\"";
+                            break;
+                        case '\\':
+                            uni = "\\";
+                            break;
+                        default:
+                            // do nothing
+                            continue;
                     }
                 }
                 final String pat = Pattern.quote(m.group(0));
@@ -193,14 +230,12 @@ public class RDFDatasetUtils {
     }
 
     /**
-     * Escapes the given string according to the N-Quads escape rules
+     * Escapes the given string according to the N-Quads escape rules.
      *
-     * @param str
-     *            The string to escape
-     * @param rval
-     *            The {@link StringBuilder} to append to.
+     * @param str  The string to escape
+     * @param rval The {@link StringBuilder} to append to.
      */
-    public static void escape(String str, StringBuilder rval) {
+    private static void escape(String str, StringBuilder rval) {
         for (int i = 0; i < str.length(); i++) {
             final char hi = str.charAt(i);
             if (hi <= 0x8 || hi == 0xB || hi == 0xC || (hi >= 0xE && hi <= 0x1F)
@@ -210,10 +245,10 @@ public class RDFDatasetUtils {
                     // characters
                     ((hi >= 0x24F // 0x24F is the end of latin extensions
                             && !Character.isHighSurrogate(hi))
-                    // TODO: there's probably a lot of other characters that
-                    // shouldn't be escaped that
-                    // fall outside these ranges, this is one example from the
-                    // json-ld tests
+                            // TODO: there's probably a lot of other characters that
+                            // shouldn't be escaped that
+                            // fall outside these ranges, this is one example from the
+                            // json-ld tests
                     )) {
                 rval.append(String.format("\\u%04x", (int) hi));
             } else if (Character.isHighSurrogate(hi)) {
@@ -222,35 +257,35 @@ public class RDFDatasetUtils {
                 rval.append(String.format("\\U%08x", c));
             } else {
                 switch (hi) {
-                case '\b':
-                    rval.append("\\b");
-                    break;
-                case '\n':
-                    rval.append("\\n");
-                    break;
-                case '\t':
-                    rval.append("\\t");
-                    break;
-                case '\f':
-                    rval.append("\\f");
-                    break;
-                case '\r':
-                    rval.append("\\r");
-                    break;
-                // case '\'':
-                // rval += "\\'";
-                // break;
-                case '\"':
-                    rval.append("\\\"");
-                    // rval += "\\u0022";
-                    break;
-                case '\\':
-                    rval.append("\\\\");
-                    break;
-                default:
-                    // just put the char as is
-                    rval.append(hi);
-                    break;
+                    case '\b':
+                        rval.append("\\b");
+                        break;
+                    case '\n':
+                        rval.append("\\n");
+                        break;
+                    case '\t':
+                        rval.append("\\t");
+                        break;
+                    case '\f':
+                        rval.append("\\f");
+                        break;
+                    case '\r':
+                        rval.append("\\r");
+                        break;
+                    // case '\'':
+                    // rval += "\\'";
+                    // break;
+                    case '\"':
+                        rval.append("\\\"");
+                        // rval += "\\u0022";
+                        break;
+                    case '\\':
+                        rval.append("\\\\");
+                        break;
+                    default:
+                        // just put the char as is
+                        rval.append(hi);
+                        break;
                 }
             }
         }
@@ -261,41 +296,39 @@ public class RDFDatasetUtils {
         // define partial regexes
         // final public static Pattern IRI =
         // Pattern.compile("(?:<([^:]+:[^>]*)>)");
-        final public static Pattern IRI = Pattern.compile("(?:<([^>]*)>)");
-        final public static Pattern BNODE = Pattern.compile("(_:(?:[A-Za-z][A-Za-z0-9]*))");
-        final public static Pattern PLAIN = Pattern.compile("\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"");
-        final public static Pattern DATATYPE = Pattern.compile("(?:\\^\\^" + IRI + ")");
-        final public static Pattern LANGUAGE = Pattern.compile("(?:@([a-z]+(?:-[a-zA-Z0-9]+)*))");
-        final public static Pattern LITERAL = Pattern
+        public static final Pattern IRI = Pattern.compile("(?:<([^>]*)>)");
+        static final Pattern BNODE = Pattern.compile("(_:(?:[A-Za-z][A-Za-z0-9]*))");
+        static final Pattern PLAIN = Pattern.compile("\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"");
+        static final Pattern DATATYPE = Pattern.compile("(?:\\^\\^" + IRI + ")");
+        static final Pattern LANGUAGE = Pattern.compile("(?:@([a-z]+(?:-[a-zA-Z0-9]+)*))");
+        static final Pattern LITERAL = Pattern
                 .compile("(?:" + PLAIN + "(?:" + DATATYPE + "|" + LANGUAGE + ")?)");
-        final public static Pattern WS = Pattern.compile("[ \\t]+");
-        final public static Pattern WSO = Pattern.compile("[ \\t]*");
-        final public static Pattern EOLN = Pattern.compile("(?:\r\n)|(?:\n)|(?:\r)");
-        final public static Pattern EMPTY = Pattern.compile("^" + WSO + "$");
+        static final Pattern WS = Pattern.compile("[ \\t]+");
+        static final Pattern WSO = Pattern.compile("[ \\t]*");
+        static final Pattern EOLN = Pattern.compile("(?:\r\n)|(?:\n)|(?:\r)");
+        static final Pattern EMPTY = Pattern.compile("^" + WSO + "$");
 
         // define quad part regexes
-        final public static Pattern SUBJECT = Pattern.compile("(?:" + IRI + "|" + BNODE + ")" + WS);
-        final public static Pattern PROPERTY = Pattern.compile(IRI.pattern() + WS.pattern());
-        final public static Pattern OBJECT = Pattern
+        static final Pattern SUBJECT = Pattern.compile("(?:" + IRI + "|" + BNODE + ")" + WS);
+        static final Pattern PROPERTY = Pattern.compile(IRI.pattern() + WS.pattern());
+        static final Pattern OBJECT = Pattern
                 .compile("(?:" + IRI + "|" + BNODE + "|" + LITERAL + ")" + WSO);
-        final public static Pattern GRAPH = Pattern
+        static final Pattern GRAPH = Pattern
                 .compile("(?:\\.|(?:(?:" + IRI + "|" + BNODE + ")" + WSO + "\\.))");
 
         // full quad regex
-        final public static Pattern QUAD = Pattern
+        static final Pattern QUAD = Pattern
                 .compile("^" + WSO + SUBJECT + PROPERTY + OBJECT + GRAPH + WSO + "$");
     }
 
     /**
      * Parses RDF in the form of N-Quads.
      *
-     * @param input
-     *            the N-Quads input to parse.
-     *
+     * @param input the N-Quads input to parse.
      * @return an RDF dataset.
-     * @throws JsonLdError
-     *             If there was an error parsing the N-Quads document.
+     * @throws JsonLdError If there was an error parsing the N-Quads document.
      */
+    @SuppressWarnings("unchecked")
     public static RDFDataset parseNQuads(String input) throws JsonLdError {
         // build RDF dataset
         final RDFDataset dataset = new RDFDataset();
@@ -355,7 +388,7 @@ public class RDFDatasetUtils {
 
             // initialise graph in dataset
             if (!dataset.containsKey(name)) {
-                final List<RDFDataset.Quad> tmp = new ArrayList<RDFDataset.Quad>();
+                final List<RDFDataset.Quad> tmp = new ArrayList<>();
                 tmp.add(triple);
                 dataset.put(name, tmp);
             }

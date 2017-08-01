@@ -1,0 +1,200 @@
+import net.researchgate.release.GitAdapter
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
+    }
+}
+
+plugins {
+    id 'com.github.hierynomus.license' version '0.13.1'
+    id 'net.researchgate.release' version '2.4.0'
+    id 'io.codearte.nexus-staging' version '0.9.0'
+}
+
+allprojects {
+    apply plugin: 'maven'
+
+    group = 'cool.pandora'
+
+    repositories {
+        jcenter()
+        mavenCentral()
+        mavenLocal()
+    }
+
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs.add("-Xlint:unchecked")
+            options.compilerArgs.add("-Xlint:deprecation")
+        }
+    }
+
+    release {
+        tagTemplate = '$name-$version'
+        scmAdapters = [
+                GitAdapter
+        ]
+
+        git {
+            requireBranch = 'master'
+            pushToRemote = 'origin'
+            pushToBranchPrefix = ''
+            commitVersionFileOnly = false
+        }
+    }
+
+}
+
+subprojects {
+    apply plugin: 'com.bmuschko.nexus'
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+    apply plugin: 'checkstyle'
+    apply plugin: 'com.github.hierynomus.license'
+    apply plugin: 'jacoco'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    ext {
+        vendor = 'Pandora Ecosystem'
+        homepage = 'http://cool.pandora'
+        docURL = 'https://github.com/pan-dora/pandora-demo/wiki'
+        license = 'Apache 2'
+
+        /* OSGi */
+        defaultOsgiImports = 'org.osgi.service.blueprint;version="[1,2)",*'
+        projectOsgiVersion = project.version.replaceAll("-SNAPSHOT", ".SNAPSHOT")
+    }
+
+    task sourceJar(type: Jar) {
+        classifier 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives sourceJar
+    }
+
+    checkstyle {
+        configFile = rootProject.file('build/checkstyle/checkstyle.xml')
+        configProperties.checkstyleConfigDir = rootProject.file('build/checkstyle/')
+        toolVersion = "8.1"
+    }
+
+    jacoco {
+        toolVersion = "0.7.6.201602180812"
+    }
+
+    license {
+        include "**/*.java"
+        header rootProject.file('LICENCE')
+        strictCheck true
+        mapping {
+            java = 'SLASHSTAR_STYLE'
+        }
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
+        repositories {
+            maven {
+                url "$buildDir/maven"
+            }
+        }
+    }
+
+    modifyPom {
+        project {
+            name 'JSONLD-Java'
+            description 'Json-LD core implementation'
+            url 'https://github.com/pan-dora/jsonld-java/'
+            inceptionYear '2017'
+
+            scm {
+                connection 'scm:git:git://github.com/pan-dora/jsonld-java.git'
+                developerConnection 'scm:git:git@github.com/pan-dora/jsonld-java.git'
+                url 'https://github.com/pan-dora/jsonld-java/'
+                tag 'HEAD'
+            }
+
+            licenses {
+                license {
+                    name 'Apache License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0'
+                    comments 'Copyright (c) 2017 Pan-dora Ecosystem'
+                }
+            }
+
+            developers {
+                developer {
+                    id 'christopher-johnson'
+                    name 'Christopher Johnson'
+                    email 'chjohnson @ (domain of organization url)'
+                    organization 'Pan-dora Ecosystem'
+                    organizationUrl 'https://pan-dora.github.io/'
+                    roles {
+                        role 'developer'
+                    }
+                    timezone '+1'
+                }
+            }
+        }
+    }
+
+    nexusStaging {
+        packageGroup = "cool.pandora"
+        stagingProfileId = "4d5f13c386f543"
+    }
+    extraArchive {
+        sources = false
+        tests = false
+    }
+
+    nexus {
+        sign = true
+        repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+        snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+
+    def homeDir = System.getProperty('user.home')
+    def mavenLocal = new File(homeDir, ".m2/repository/cool/pandora")
+
+    task copyTask(type: Copy) {
+        from mavenLocal
+        into 'build/maven'
+    }
+}
+
+configurations {
+    buildToolsConfig
+}
+
+
+dependencies {
+    buildToolsConfig "cool.pandora:pandora-build-tools:0.1.2"
+}
+
+task processBuildTools(type: Copy) {
+    from {
+        configurations.buildToolsConfig.collect {
+            zipTree(it).matching {
+                include 'checkstyle/*.xml'
+                include 'license/*.txt'
+            }
+        }
+    }
+    into 'build'
+}
+
+check.dependsOn processBuildTools

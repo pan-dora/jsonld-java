@@ -1,8 +1,38 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.utils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.lang.ref.SoftReference;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -31,10 +61,13 @@ import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * JarCacheStorage.
+ *
+ * @author Stian Soiland-Reyes
+ * @author Peter Ansell p_ansell@yahoo.com
+ */
 public class JarCacheStorage implements HttpCacheStorage {
 
     private static final String JARCACHE_JSON = "jarcache.json";
@@ -42,7 +75,7 @@ public class JarCacheStorage implements HttpCacheStorage {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final CacheConfig cacheConfig;
-    
+
     private ClassLoader classLoader;
 
     /**
@@ -59,25 +92,25 @@ public class JarCacheStorage implements HttpCacheStorage {
      *
      * @see #getJarCache(URL)
      */
-    protected final ConcurrentMap<URI, SoftReference<JsonNode>> jarCaches = new ConcurrentHashMap<URI, SoftReference<JsonNode>>();
+    private final ConcurrentMap<URI, SoftReference<JsonNode>> jarCaches = new ConcurrentHashMap<>();
 
-    public ClassLoader getClassLoader() {
+    private ClassLoader getClassLoader() {
         if (classLoader != null) {
             return classLoader;
         }
         return Thread.currentThread().getContextClassLoader();
     }
 
-    public void setClassLoader(ClassLoader classLoader) {
+    private void setClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 
-    public JarCacheStorage(ClassLoader classLoader, CacheConfig cacheConfig) {
+    JarCacheStorage(ClassLoader classLoader, CacheConfig cacheConfig) {
         this(classLoader, cacheConfig, new BasicHttpCacheStorage(cacheConfig));
     }
 
     public JarCacheStorage(ClassLoader classLoader, CacheConfig cacheConfig,
-            HttpCacheStorage delegate) {
+                           HttpCacheStorage delegate) {
         setClassLoader(classLoader);
         this.cacheConfig = cacheConfig;
         this.delegate = delegate;
@@ -103,7 +136,7 @@ public class JarCacheStorage implements HttpCacheStorage {
             try {
                 requestedUri = new URI(requestedUri.getScheme(), requestedUri.getHost(),
                         requestedUri.getPath(), requestedUri.getFragment());
-            } catch (final URISyntaxException e) {
+            } catch (final URISyntaxException ignored) {
             }
         }
 
@@ -135,7 +168,7 @@ public class JarCacheStorage implements HttpCacheStorage {
         }
     }
 
-    protected JsonNode getJarCache(URL url) throws IOException, JsonProcessingException {
+    private JsonNode getJarCache(URL url) throws IOException {
 
         URI uri;
         try {
@@ -161,7 +194,7 @@ public class JarCacheStorage implements HttpCacheStorage {
         // Use putIfAbsent to ensure concurrent reads do not return different
         // JsonNode objects, for memory management purposes
         final SoftReference<JsonNode> putIfAbsent = jarCaches.putIfAbsent(uri,
-                new SoftReference<JsonNode>(tree));
+                new SoftReference<>(tree));
         if (putIfAbsent != null) {
             final JsonNode returnValue = putIfAbsent.get();
             if (returnValue != null) {
@@ -169,19 +202,19 @@ public class JarCacheStorage implements HttpCacheStorage {
             } else {
                 // Force update the reference if the existing reference had
                 // been garbage collected
-                jarCaches.put(uri, new SoftReference<JsonNode>(tree));
+                jarCaches.put(uri, new SoftReference<>(tree));
             }
         }
         return tree;
     }
 
-    protected HttpCacheEntry cacheEntry(URI requestedUri, URL baseURL, JsonNode cacheNode)
-            throws MalformedURLException, IOException {
+    private HttpCacheEntry cacheEntry(URI requestedUri, URL baseURL, JsonNode cacheNode)
+            throws IOException {
         final URL classpath = new URL(baseURL, cacheNode.get("X-Classpath").asText());
         log.debug("Cache hit for " + requestedUri);
         log.trace("{}", cacheNode);
 
-        final List<Header> responseHeaders = new ArrayList<Header>();
+        final List<Header> responseHeaders = new ArrayList<>();
         if (!cacheNode.has(HTTP.DATE_HEADER)) {
             responseHeaders
                     .add(new BasicHeader(HTTP.DATE_HEADER, DateUtils.formatDate(new Date())));

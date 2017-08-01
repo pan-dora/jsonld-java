@@ -1,7 +1,37 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.core;
 
 import static com.github.jsonldjava.core.RDFDatasetUtils.parseNQuads;
 import static com.github.jsonldjava.core.RDFDatasetUtils.toNQuad;
+
+import com.github.jsonldjava.utils.Obj;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -14,8 +44,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.github.jsonldjava.utils.Obj;
-
+/**
+ * NormalizeUtils.
+ *
+ * @author @tristan
+ * @author Peter Ansell p_ansell@yahoo.com
+ */
 class NormalizeUtils {
 
     private final UniqueNamer namer;
@@ -23,8 +57,8 @@ class NormalizeUtils {
     private final List<Object> quads;
     private final JsonLdOptions options;
 
-    public NormalizeUtils(List<Object> quads, Map<String, Object> bnodes, UniqueNamer namer,
-            JsonLdOptions options) {
+    NormalizeUtils(List<Object> quads, Map<String, Object> bnodes, UniqueNamer namer,
+                   JsonLdOptions options) {
         this.options = options;
         this.quads = quads;
         this.bnodes = bnodes;
@@ -32,20 +66,21 @@ class NormalizeUtils {
     }
 
     // generates unique and duplicate hashes for bnodes
-    public Object hashBlankNodes(Collection<String> unnamed_) throws JsonLdError {
-        List<String> unnamed = new ArrayList<String>(unnamed_);
-        List<String> nextUnnamed = new ArrayList<String>();
-        Map<String, List<String>> duplicates = new LinkedHashMap<String, List<String>>();
-        Map<String, String> unique = new LinkedHashMap<String, String>();
+    @SuppressWarnings("unchecked")
+    Object hashBlankNodes(Collection<String> unnamed_) throws JsonLdError {
+        List<String> unnamed = new ArrayList<>(unnamed_);
+        List<String> nextUnnamed = new ArrayList<>();
+        Map<String, List<String>> duplicates = new LinkedHashMap<>();
+        Map<String, String> unique = new LinkedHashMap<>();
 
         // NOTE: not using the same structure as javascript here to avoid
         // possible stack overflows
         // hash quads for each unnamed bnode
-        for (int hui = 0;; hui++) {
+        for (int hui = 0; ; hui++) {
             if (hui == unnamed.size()) {
                 // done, name blank nodes
                 Boolean named = false;
-                List<String> hashes = new ArrayList<String>(unique.keySet());
+                List<String> hashes = new ArrayList<>(unique.keySet());
                 Collections.sort(hashes);
                 for (final String hash : hashes) {
                     final String bnode = unique.get(hash);
@@ -62,24 +97,24 @@ class NormalizeUtils {
                     // hashBlankNodes(unnamed);
                     hui = -1;
                     unnamed = nextUnnamed;
-                    nextUnnamed = new ArrayList<String>();
-                    duplicates = new LinkedHashMap<String, List<String>>();
-                    unique = new LinkedHashMap<String, String>();
+                    nextUnnamed = new ArrayList<>();
+                    duplicates = new LinkedHashMap<>();
+                    unique = new LinkedHashMap<>();
                     continue;
                 }
                 // name the duplicate hash bnods
                 else {
                     // names duplicate hash bnodes
                     // enumerate duplicate hash groups in sorted order
-                    hashes = new ArrayList<String>(duplicates.keySet());
+                    hashes = new ArrayList<>(duplicates.keySet());
                     Collections.sort(hashes);
 
                     // process each group
-                    for (int pgi = 0;; pgi++) {
+                    for (int pgi = 0; ; pgi++) {
                         if (pgi == hashes.size()) {
                             // done, create JSON-LD array
                             // return createArray();
-                            final List<String> normalized = new ArrayList<String>();
+                            final List<String> normalized = new ArrayList<>();
 
                             // Note: At this point all bnodes in the set of RDF
                             // quads have been
@@ -90,17 +125,16 @@ class NormalizeUtils {
                             // via the 'namer' object
 
                             // update bnode names in each quad and serialize
-                            for (int cai = 0; cai < quads.size(); ++cai) {
-                                final Map<String, Object> quad = (Map<String, Object>) quads
-                                        .get(cai);
-                                for (final String attr : new String[] { "subject", "object",
-                                        "name" }) {
+                            for (Object quad1 : quads) {
+                                final Map<String, Object> quad = (Map<String, Object>) quad1;
+                                for (final String attr : new String[]{"subject", "object",
+                                        "name"}) {
                                     if (quad.containsKey(attr)) {
                                         final Map<String, Object> qa = (Map<String, Object>) quad
                                                 .get(attr);
                                         if (qa != null && "blank node".equals(qa.get("type"))
                                                 && ((String) qa.get("value"))
-                                                        .indexOf("_:c14n") != 0) {
+                                                .indexOf("_:c14n") != 0) {
                                             qa.put("value",
                                                     namer.getName((String) qa.get(("value"))));
                                         }
@@ -109,7 +143,7 @@ class NormalizeUtils {
                                 normalized.add(toNQuad((RDFDataset.Quad) quad,
                                         quad.containsKey("name") && quad.get("name") != null
                                                 ? (String) ((Map<String, Object>) quad.get("name"))
-                                                        .get("value")
+                                                .get("value")
                                                 : null));
                             }
 
@@ -138,17 +172,11 @@ class NormalizeUtils {
 
                         // name each group member
                         final List<String> group = duplicates.get(hashes.get(pgi));
-                        final List<HashResult> results = new ArrayList<HashResult>();
-                        for (int n = 0;; n++) {
+                        final List<HashResult> results = new ArrayList<>();
+                        for (int n = 0; ; n++) {
                             if (n == group.size()) {
                                 // name bnodes in hash order
-                                Collections.sort(results, new Comparator<HashResult>() {
-                                    @Override
-                                    public int compare(HashResult a, HashResult b) {
-                                        final int res = a.hash.compareTo(b.hash);
-                                        return res;
-                                    }
-                                });
+                                results.sort(Comparator.comparing(a -> a.hash));
                                 for (final HashResult r : results) {
                                     // name all bnodes in path namer in
                                     // key-entry order
@@ -189,7 +217,7 @@ class NormalizeUtils {
                 duplicates.get(hash).add(bnode);
                 nextUnnamed.add(bnode);
             } else if (unique.containsKey(hash)) {
-                final List<String> tmp = new ArrayList<String>();
+                final List<String> tmp = new ArrayList<>();
                 tmp.add(unique.get(hash));
                 tmp.add(bnode);
                 duplicates.put(hash, tmp);
@@ -213,34 +241,29 @@ class NormalizeUtils {
      * will recursively pick adjacent bnode permutations that produce the
      * lexicographically-least 'path' serializations.
      *
-     * @param id
-     *            the ID of the bnode to hash paths for.
-     * @param bnodes
-     *            the map of bnode quads.
-     * @param namer
-     *            the canonical bnode namer.
-     * @param pathNamer
-     *            the namer used to assign names to adjacent bnodes.
-     * @param callback
-     *            (err, result) called once the operation completes.
+     * @param id        the ID of the bnode to hash paths for.
+     * @param bnodes    the map of bnode quads.
+     * @param namer     the canonical bnode namer.
+     * @param pathNamer the namer used to assign names to adjacent bnodes.
      */
+    @SuppressWarnings("unchecked")
     private static HashResult hashPaths(String id, Map<String, Object> bnodes, UniqueNamer namer,
-            UniqueNamer pathNamer) {
+                                        UniqueNamer pathNamer) {
         try {
             // create SHA-1 digest
             final MessageDigest md = MessageDigest.getInstance("SHA-1");
 
-            final Map<String, List<String>> groups = new LinkedHashMap<String, List<String>>();
+            final Map<String, List<String>> groups = new LinkedHashMap<>();
             List<String> groupHashes;
             final List<Object> quads = (List<Object>) ((Map<String, Object>) bnodes.get(id))
                     .get("quads");
 
-            for (int hpi = 0;; hpi++) {
+            for (int hpi = 0; ; hpi++) {
                 if (hpi == quads.size()) {
                     // done , hash groups
-                    groupHashes = new ArrayList<String>(groups.keySet());
+                    groupHashes = new ArrayList<>(groups.keySet());
                     Collections.sort(groupHashes);
-                    for (int hgi = 0;; hgi++) {
+                    for (int hgi = 0; ; hgi++) {
                         if (hgi == groupHashes.size()) {
                             final HashResult res = new HashResult();
                             res.hash = encodeHex(md.digest());
@@ -263,25 +286,25 @@ class NormalizeUtils {
                             UniqueNamer pathNamerCopy = pathNamer.clone();
 
                             // build adjacent path
-                            String path = "";
-                            final List<String> recurse = new ArrayList<String>();
+                            StringBuilder path = new StringBuilder();
+                            final List<String> recurse = new ArrayList<>();
                             for (final String bnode : permutation) {
                                 // use canonical name if available
                                 if (namer.isNamed(bnode)) {
-                                    path += namer.getName(bnode);
+                                    path.append(namer.getName(bnode));
                                 } else {
                                     // recurse if bnode isn't named in the path
                                     // yet
                                     if (!pathNamerCopy.isNamed(bnode)) {
                                         recurse.add(bnode);
                                     }
-                                    path += pathNamerCopy.getName(bnode);
+                                    path.append(pathNamerCopy.getName(bnode));
                                 }
 
                                 // skip permutation if path is already >= chosen
                                 // path
                                 if (chosenPath != null && path.length() >= chosenPath.length()
-                                        && path.compareTo(chosenPath) > 0) {
+                                        && path.toString().compareTo(chosenPath) > 0) {
                                     // return nextPermutation(true);
                                     if (permutator.hasNext()) {
                                         contPermutation = true;
@@ -306,11 +329,12 @@ class NormalizeUtils {
                             }
 
                             // does the next recursion
-                            for (int nrn = 0;; nrn++) {
+                            for (int nrn = 0; ; nrn++) {
                                 if (nrn == recurse.size()) {
                                     // return nextPermutation(false);
-                                    if (chosenPath == null || path.compareTo(chosenPath) < 0) {
-                                        chosenPath = path;
+                                    if (chosenPath == null || path.toString().compareTo(
+                                            chosenPath) < 0) {
+                                        chosenPath = path.toString();
                                         chosenNamer = pathNamerCopy;
                                     }
                                     if (!permutator.hasNext()) {
@@ -327,13 +351,14 @@ class NormalizeUtils {
                                 final String bnode = recurse.get(nrn);
                                 final HashResult result = hashPaths(bnode, bnodes, namer,
                                         pathNamerCopy);
-                                path += pathNamerCopy.getName(bnode) + "<" + result.hash + ">";
+                                path.append(pathNamerCopy.getName(bnode)).append("<").append(
+                                        result.hash).append(">");
                                 pathNamerCopy = result.pathNamer;
 
                                 // skip permutation if path is already >= chosen
                                 // path
                                 if (chosenPath != null && path.length() >= chosenPath.length()
-                                        && path.compareTo(chosenPath) > 0) {
+                                        && path.toString().compareTo(chosenPath) > 0) {
                                     // return nextPermutation(true);
                                     if (!permutator.hasNext()) {
                                         // digest chosen path and update namer
@@ -394,20 +419,16 @@ class NormalizeUtils {
                     if (groups.containsKey(groupHash)) {
                         groups.get(groupHash).add(bnode);
                     } else {
-                        final List<String> tmp = new ArrayList<String>();
+                        final List<String> tmp = new ArrayList<>();
                         tmp.add(bnode);
                         groups.put(groupHash, tmp);
                     }
                 }
             }
-        } catch (final NoSuchAlgorithmException e) {
+        } catch (final NoSuchAlgorithmException | UnsupportedEncodingException e) {
             // TODO: i don't expect that SHA-1 is even NOT going to be
             // available?
             // look into this further
-            throw new RuntimeException(e);
-        } catch (final UnsupportedEncodingException e) {
-            // TODO: i don't expect that UTF-8 is ever not going to be available
-            // either
             throw new RuntimeException(e);
         }
     }
@@ -415,15 +436,12 @@ class NormalizeUtils {
     /**
      * Hashes all of the quads about a blank node.
      *
-     * @param id
-     *            the ID of the bnode to hash quads for.
-     * @param bnodes
-     *            the mapping of bnodes to quads.
-     * @param namer
-     *            the canonical bnode namer.
-     *
+     * @param id     the ID of the bnode to hash quads for.
+     * @param bnodes the mapping of bnodes to quads.
+     * @param namer  the canonical bnode namer.
      * @return the new hash.
      */
+    @SuppressWarnings("unchecked")
     private static String hashQuads(String id, Map<String, Object> bnodes, UniqueNamer namer) {
         // return cached hash
         if (((Map<String, Object>) bnodes.get(id)).containsKey("hash")) {
@@ -431,13 +449,14 @@ class NormalizeUtils {
         }
 
         // serialize all of bnode's quads
-        final List<Map<String, Object>> quads = (List<Map<String, Object>>) ((Map<String, Object>) bnodes
+        final List<Map<String, Object>> quads = (List<Map<String, Object>>) ((Map<String,
+                Object>) bnodes
                 .get(id)).get("quads");
-        final List<String> nquads = new ArrayList<String>();
-        for (int i = 0; i < quads.size(); ++i) {
-            nquads.add(toNQuad((RDFDataset.Quad) quads.get(i),
-                    quads.get(i).get("name") != null
-                            ? (String) ((Map<String, Object>) quads.get(i).get("name")).get("value")
+        final List<String> nquads = new ArrayList<>();
+        for (Map<String, Object> quad : quads) {
+            nquads.add(toNQuad((RDFDataset.Quad) quad,
+                    quad.get("name") != null
+                            ? (String) ((Map<String, Object>) quad.get("name")).get("value")
                             : null,
                     id));
         }
@@ -450,10 +469,10 @@ class NormalizeUtils {
     }
 
     /**
-     * A helper class to sha1 hash all the strings in a collection
+     * A helper class to sha1 hash all the strings in a collection.
      *
-     * @param nquads
-     * @return
+     * @param nquads Collection
+     * @return SHA-1 digest
      */
     private static String sha1hash(Collection<String> nquads) {
         try {
@@ -463,20 +482,18 @@ class NormalizeUtils {
                 md.update(nquad.getBytes("UTF-8"));
             }
             return encodeHex(md.digest());
-        } catch (final NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (final UnsupportedEncodingException e) {
+        } catch (final NoSuchAlgorithmException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
 
     // TODO: this is something to optimize
     private static String encodeHex(final byte[] data) {
-        String rval = "";
+        StringBuilder rval = new StringBuilder();
         for (final byte b : data) {
-            rval += String.format("%02x", b);
+            rval.append(String.format("%02x", b));
         }
-        return rval;
+        return rval.toString();
     }
 
     /**
@@ -484,17 +501,14 @@ class NormalizeUtils {
      * (subject or object). If the node is a blank node and its value does not
      * match the given blank node ID, it will be returned.
      *
-     * @param node
-     *            the RDF quad node.
-     * @param id
-     *            the ID of the blank node to look next to.
-     *
+     * @param node the RDF quad node.
+     * @param id   the ID of the blank node to look next to.
      * @return the adjacent blank node name or null if none was found.
      */
     private static String getAdjacentBlankNodeName(Map<String, Object> node, String id) {
         return "blank node".equals(node.get("type"))
                 && (!node.containsKey("value") || !Obj.equals(node.get("value"), id))
-                        ? (String) node.get("value") : null;
+                ? (String) node.get("value") : null;
     }
 
     private static class Permutator {
@@ -503,11 +517,12 @@ class NormalizeUtils {
         private boolean done;
         private final Map<String, Boolean> left;
 
-        public Permutator(List<String> list) {
+        @SuppressWarnings("unchecked")
+        Permutator(List<String> list) {
             this.list = (List<String>) JsonLdUtils.clone(list);
             Collections.sort(this.list);
             this.done = false;
-            this.left = new LinkedHashMap<String, Boolean>();
+            this.left = new LinkedHashMap<>();
             for (final String i : this.list) {
                 this.left.put(i, true);
             }
@@ -518,7 +533,7 @@ class NormalizeUtils {
          *
          * @return true if there is another permutation, false if not.
          */
-        public boolean hasNext() {
+        boolean hasNext() {
             return !this.done;
         }
 
@@ -528,6 +543,7 @@ class NormalizeUtils {
          *
          * @return the next permutation.
          */
+        @SuppressWarnings("unchecked")
         public List<String> next() {
             final List<String> rval = (List<String>) JsonLdUtils.clone(this.list);
 
@@ -544,8 +560,8 @@ class NormalizeUtils {
                 final Boolean left = this.left.get(element);
                 if ((k == null || element.compareTo(k) > 0)
                         && ((left && i > 0 && element.compareTo(this.list.get(i - 1)) > 0)
-                                || (!left && i < (length - 1)
-                                        && element.compareTo(this.list.get(i + 1)) > 0))) {
+                        || (!left && i < (length - 1)
+                        && element.compareTo(this.list.get(i + 1)) > 0))) {
                     k = element;
                     pos = i;
                 }
@@ -561,9 +577,9 @@ class NormalizeUtils {
                 this.list.set(swap, k);
 
                 // reverse the direction of all element larger than k
-                for (int i = 0; i < length; i++) {
-                    if (this.list.get(i).compareTo(k) > 0) {
-                        this.left.put(this.list.get(i), !this.left.get(this.list.get(i)));
+                for (String aList : this.list) {
+                    if (aList.compareTo(k) > 0) {
+                        this.left.put(aList, !this.left.get(aList));
                     }
                 }
             }

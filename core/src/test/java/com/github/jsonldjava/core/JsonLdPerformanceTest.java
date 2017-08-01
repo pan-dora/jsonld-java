@@ -1,12 +1,39 @@
-/**
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
  *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.github.jsonldjava.core;
+
+import com.github.jsonldjava.core.RDFDataset.Quad;
+import com.github.jsonldjava.utils.JsonUtils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -24,10 +51,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.github.jsonldjava.core.RDFDataset.Quad;
-import com.github.jsonldjava.utils.JsonUtils;
-
 /**
+ * JsonLdPerformanceTest.
  *
  * @author Peter Ansell p_ansell@yahoo.com
  */
@@ -46,11 +71,12 @@ public class JsonLdPerformanceTest {
     /**
      * Test performance parsing using test data from:
      *
-     * https://dl.dropboxusercontent.com/s/yha7x0paj8zvvz5/2000007922.jsonld.gz
+     * <p>https://dl.dropboxusercontent.com/s/yha7x0paj8zvvz5/2000007922.jsonld.gz
      *
-     * @throws Exception
+     * @throws Exception Exception
      */
-    @Ignore("Enable as necessary for manual testing, particularly to test that it fails due to irregular URIs")
+    @Ignore("Enable as necessary for manual testing, particularly to test that it fails due to "
+            + "irregular URIs")
     @Test
     public final void testPerformance1() throws Exception {
         testCompaction("Long", new GZIPInputStream(
@@ -60,9 +86,9 @@ public class JsonLdPerformanceTest {
     /**
      * Test performance parsing using test data from:
      *
-     * https://github.com/jsonld-java/jsonld-java/files/245372/jsonldperfs.zip
+     * <p>https://github.com/jsonld-java/jsonld-java/files/245372/jsonldperfs.zip
      *
-     * @throws Exception
+     * @throws Exception Exception
      */
     @Ignore("Enable as necessary to test performance")
     @Test
@@ -74,9 +100,9 @@ public class JsonLdPerformanceTest {
     /**
      * Test performance parsing using test data from:
      *
-     * https://github.com/jsonld-java/jsonld-java/files/245372/jsonldperfs.zip
+     * <p>https://github.com/jsonld-java/jsonld-java/files/245372/jsonldperfs.zip
      *
-     * @throws Exception
+     * @throws Exception Exception
      */
     @Ignore("Enable as necessary to test performance")
     @Test
@@ -86,7 +112,7 @@ public class JsonLdPerformanceTest {
     }
 
     private void testCompaction(String label, InputStream nextInputStream)
-            throws IOException, FileNotFoundException, JsonLdError {
+            throws IOException, JsonLdError {
         final File testFile = File.createTempFile("jsonld-perf-source-", ".jsonld", testDir);
         FileUtils.copyInputStreamToFile(nextInputStream, testFile);
 
@@ -94,8 +120,7 @@ public class JsonLdPerformanceTest {
         final LongSummaryStatistics compactStats = new LongSummaryStatistics();
 
         for (int i = 0; i < 1000; i++) {
-            final InputStream testInput = new BufferedInputStream(new FileInputStream(testFile));
-            try {
+            try (InputStream testInput = new BufferedInputStream(new FileInputStream(testFile))) {
                 final long parseStart = System.currentTimeMillis();
                 final Object inputObject = JsonUtils.fromInputStream(testInput);
                 parseStats.accept(System.currentTimeMillis() - parseStart);
@@ -104,8 +129,6 @@ public class JsonLdPerformanceTest {
                 final long compactStart = System.currentTimeMillis();
                 JsonLdProcessor.compact(inputObject, null, opts);
                 compactStats.accept(System.currentTimeMillis() - compactStart);
-            } finally {
-                testInput.close();
             }
         }
 
@@ -125,7 +148,7 @@ public class JsonLdPerformanceTest {
         final String uri1 = exNs + "a1";
         final String uri2 = exNs + "b2";
         final String uri3 = exNs + "c3";
-        final List<String> potentialSubjects = new ArrayList<String>();
+        final List<String> potentialSubjects = new ArrayList<>();
         potentialSubjects.add(bnode);
         potentialSubjects.add(uri1);
         potentialSubjects.add(uri2);
@@ -142,11 +165,11 @@ public class JsonLdPerformanceTest {
         }
         Collections.shuffle(potentialSubjects, prng);
 
-        final List<String> potentialObjects = new ArrayList<String>();
+        final List<String> potentialObjects = new ArrayList<>();
         potentialObjects.addAll(potentialSubjects);
         Collections.shuffle(potentialObjects, prng);
 
-        final List<String> potentialPredicates = new ArrayList<String>();
+        final List<String> potentialPredicates = new ArrayList<>();
         potentialPredicates.add(JsonLdConsts.RDF_TYPE);
         potentialPredicates.add(JsonLdConsts.RDF_LIST);
         potentialPredicates.add(JsonLdConsts.RDF_NIL);
@@ -223,7 +246,8 @@ public class JsonLdPerformanceTest {
         System.out.println("Count: " + stats.getCount());
 
         System.out.println(
-                "RDF triples to JSON-LD (internal objects, not parsed from a document), using laxMergeValue...");
+                "RDF triples to JSON-LD (internal objects, not parsed from a document), using "
+                        + "laxMergeValue...");
         final JsonLdOptions optionsLax = new JsonLdOptions();
         final JsonLdApi jsonLdApiLax = new JsonLdApi(optionsLax);
         final int[] hashCodesLax = new int[rounds];
@@ -344,7 +368,7 @@ public class JsonLdPerformanceTest {
     }
 
     /**
-     * many triples with same subject and prop: current implementation is slow
+     * many triples with same subject and prop: current implementation is slow.
      *
      * @author fpservant
      */
@@ -354,24 +378,11 @@ public class JsonLdPerformanceTest {
 
         final String ns = "http://www.example.com/foo/";
 
-        final Function<Integer, String> subjectGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "s";
-            }
-        };
-        final Function<Integer, String> predicateGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "p" + Integer.toString(index % 5);
-            }
-        };
-        final Function<Integer, String> objectGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "o" + Integer.toString(index);
-            }
-        };
+        final Function<Integer, String> subjectGenerator = index -> ns + "s";
+        final Function<Integer, String> predicateGenerator = index -> ns + "p" + Integer.toString(
+                index % 5);
+        final Function<Integer, String> objectGenerator = index -> ns + "o" + Integer.toString(
+                index);
         final int tripleCount = 2000;
         final int warmingRounds = 200;
         final int rounds = 1000;
@@ -382,7 +393,7 @@ public class JsonLdPerformanceTest {
     }
 
     /**
-     * many triples with same subject and prop: current implementation is slow
+     * many triples with same subject and prop: current implementation is slow.
      *
      * @author fpservant
      */
@@ -392,24 +403,11 @@ public class JsonLdPerformanceTest {
 
         final String ns = "http://www.example.com/foo/";
 
-        final Function<Integer, String> subjectGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "s";
-            }
-        };
-        final Function<Integer, String> predicateGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "p" + Integer.toString(index % 2);
-            }
-        };
-        final Function<Integer, String> objectGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "o" + Integer.toString(index);
-            }
-        };
+        final Function<Integer, String> subjectGenerator = index -> ns + "s";
+        final Function<Integer, String> predicateGenerator = index -> ns + "p" + Integer.toString(
+                index % 2);
+        final Function<Integer, String> objectGenerator = index -> ns + "o" + Integer.toString(
+                index);
         final int tripleCount = 2000;
         final int warmingRounds = 200;
         final int rounds = 1000;
@@ -420,7 +418,7 @@ public class JsonLdPerformanceTest {
     }
 
     /**
-     * many triples with same subject and prop: current implementation is slow
+     * many triples with same subject and prop: current implementation is slow.
      *
      * @author fpservant
      */
@@ -430,24 +428,10 @@ public class JsonLdPerformanceTest {
 
         final String ns = "http://www.example.com/foo/";
 
-        final Function<Integer, String> subjectGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "s";
-            }
-        };
-        final Function<Integer, String> predicateGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "p";
-            }
-        };
-        final Function<Integer, String> objectGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "o" + Integer.toString(index);
-            }
-        };
+        final Function<Integer, String> subjectGenerator = index -> ns + "s";
+        final Function<Integer, String> predicateGenerator = index -> ns + "p";
+        final Function<Integer, String> objectGenerator = index -> ns + "o" + Integer.toString(
+                index);
         final int tripleCount = 2000;
         final int warmingRounds = 200;
         final int rounds = 1000;
@@ -458,7 +442,7 @@ public class JsonLdPerformanceTest {
     }
 
     /**
-     * many triples with same subject and prop: current implementation is slow
+     * many triples with same subject and prop: current implementation is slow.
      *
      * @author fpservant
      */
@@ -468,24 +452,11 @@ public class JsonLdPerformanceTest {
 
         final String ns = "http://www.example.com/foo/";
 
-        final Function<Integer, String> subjectGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "s" + Integer.toString(index % 100);
-            }
-        };
-        final Function<Integer, String> predicateGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "p";
-            }
-        };
-        final Function<Integer, String> objectGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "o" + Integer.toString(index);
-            }
-        };
+        final Function<Integer, String> subjectGenerator = index -> ns + "s" + Integer.toString(
+                index % 100);
+        final Function<Integer, String> predicateGenerator = index -> ns + "p";
+        final Function<Integer, String> objectGenerator = index -> ns + "o" + Integer.toString(
+                index);
         final int tripleCount = 2000;
         final int warmingRounds = 200;
         final int rounds = 1000;
@@ -496,7 +467,7 @@ public class JsonLdPerformanceTest {
     }
 
     /**
-     * many triples with same subject and prop: current implementation is slow
+     * many triples with same subject and prop: current implementation is slow.
      *
      * @author fpservant
      */
@@ -506,24 +477,12 @@ public class JsonLdPerformanceTest {
 
         final String ns = "http://www.example.com/foo/";
 
-        final Function<Integer, String> subjectGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "s" + Integer.toString(index % 1000);
-            }
-        };
-        final Function<Integer, String> predicateGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "p" + Integer.toString(index % 5);
-            }
-        };
-        final Function<Integer, String> objectGenerator = new Function<Integer, String>() {
-            @Override
-            public String apply(Integer index) {
-                return ns + "o" + Integer.toString(index);
-            }
-        };
+        final Function<Integer, String> subjectGenerator = index -> ns + "s" + Integer.toString(
+                index % 1000);
+        final Function<Integer, String> predicateGenerator = index -> ns + "p" + Integer.toString(
+                index % 5);
+        final Function<Integer, String> objectGenerator = index -> ns + "o" + Integer.toString(
+                index);
         final int tripleCount = 2000;
         final int warmingRounds = 200;
         final int rounds = 1000;
@@ -536,27 +495,21 @@ public class JsonLdPerformanceTest {
     /**
      * Run a test on lax versus slow methods for toRDF.
      *
-     * @param ns
-     *            The namespace to assign
-     * @param subjectGenerator
-     *            A {@link Function} used to generate the subject IRIs
-     * @param predicateGenerator
-     *            A {@link Function} used to generate the predicate IRIs
-     * @param objectGenerator
-     *            A {@link Function} used to generate the object IRIs
-     * @param tripleCount
-     *            The number of triples to create for the dataset
-     * @param warmingRounds
-     *            The number of warming rounds to use
-     * @param rounds
-     *            The number of test rounds to use
-     * @throws JsonLdError
-     *             If there is an error with the JSONLD processing.
+     * @param ns The namespace to assign
+     * @param subjectGenerator A {@link Function} used to generate the subject IRIs
+     * @param predicateGenerator A {@link Function} used to generate the predicate IRIs
+     * @param objectGenerator A {@link Function} used to generate the object IRIs
+     * @param tripleCount The number of triples to create for the dataset
+     * @param warmingRounds The number of warming rounds to use
+     * @param rounds The number of test rounds to use
+     * @throws JsonLdError If there is an error with the JSONLD processing.
      */
     private void runLaxVersusSlowToRDFTest(final String label, final String ns,
-            Function<Integer, String> subjectGenerator,
-            Function<Integer, String> predicateGenerator, Function<Integer, String> objectGenerator,
-            int tripleCount, int warmingRounds, int rounds) throws JsonLdError {
+                                           Function<Integer, String> subjectGenerator,
+                                           Function<Integer, String> predicateGenerator,
+                                           Function<Integer, String> objectGenerator,
+                                           int tripleCount, int warmingRounds, int rounds) throws
+            JsonLdError {
 
         System.out.println("Running test for lax versus slow for " + label);
 
@@ -604,6 +557,8 @@ public class JsonLdPerformanceTest {
     }
 
     /**
+     * duplicatedTriplesInAnRDFDataset.
+     *
      * @author fpservant
      */
     @Test

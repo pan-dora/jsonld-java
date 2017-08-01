@@ -1,4 +1,43 @@
+/*
+ * Copyright (c) 2012, Deutsche Forschungszentrum für Künstliche Intelligenz GmbH
+ * Copyright (c) 2012-2017, JSONLD-Java contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.github.jsonldjava.utils;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.github.jsonldjava.core.JsonLdApi;
+import com.github.jsonldjava.core.JsonLdProcessor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,28 +64,24 @@ import org.apache.http.impl.client.cache.BasicHttpCacheStorage;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.jsonldjava.core.JsonLdApi;
-import com.github.jsonldjava.core.JsonLdProcessor;
 
 /**
  * Functions used to make loading, parsing, and serializing JSON easy using
  * Jackson.
  *
  * @author tristan
- *
  */
 public class JsonUtils {
+
+    private JsonUtils() {
+    }
+
     /**
      * An HTTP Accept header that prefers JSONLD.
      */
-    public static final String ACCEPT_HEADER = "application/ld+json, application/json;q=0.9, application/javascript;q=0.5, text/javascript;q=0.5, text/plain;q=0.2, */*;q=0.1";
+    public static final String ACCEPT_HEADER = "application/ld+json, application/json;q=0.9, "
+            + "application/javascript;"
+            + "q=0.5, text/javascript;q=0.5, text/plain;q=0.2, */*;q=0.1";
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     private static final JsonFactory JSON_FACTORY = new JsonFactory(JSON_MAPPER);
     private static volatile CloseableHttpClient DEFAULT_HTTP_CLIENT;
@@ -68,13 +103,10 @@ public class JsonUtils {
      * {@link JsonLdProcessor} methods.<br>
      * Uses UTF-8 as the character encoding when decoding the InputStream.
      *
-     * @param input
-     *            The JSON-LD document in an InputStream.
+     * @param input The JSON-LD document in an InputStream.
      * @return A JSON Object.
-     * @throws JsonParseException
-     *             If there was a JSON related error during parsing.
-     * @throws IOException
-     *             If there was an IO error during parsing.
+     * @throws JsonParseException If there was a JSON related error during parsing.
+     * @throws IOException        If there was an IO error during parsing.
      */
     public static Object fromInputStream(InputStream input) throws IOException {
         // no readers from inputstreams w.o. encoding!!
@@ -86,20 +118,16 @@ public class JsonUtils {
      * that can be used as input for the {@link JsonLdApi} and
      * {@link JsonLdProcessor} methods.
      *
-     * @param input
-     *            The JSON-LD document in an InputStream.
-     * @param enc
-     *            The character encoding to use when interpreting the characters
-     *            in the InputStream.
+     * @param input The JSON-LD document in an InputStream.
+     * @param enc   The character encoding to use when interpreting the characters
+     *              in the InputStream.
      * @return A JSON Object.
-     * @throws JsonParseException
-     *             If there was a JSON related error during parsing.
-     * @throws IOException
-     *             If there was an IO error during parsing.
+     * @throws JsonParseException If there was a JSON related error during parsing.
+     * @throws IOException        If there was an IO error during parsing.
      */
-    public static Object fromInputStream(InputStream input, String enc) throws IOException {
+    private static Object fromInputStream(InputStream input, String enc) throws IOException {
         try (InputStreamReader in = new InputStreamReader(input, enc);
-                BufferedReader reader = new BufferedReader(in);) {
+             BufferedReader reader = new BufferedReader(in)) {
             return fromReader(reader);
         }
     }
@@ -109,13 +137,10 @@ public class JsonUtils {
      * can be used as input for the {@link JsonLdApi} and
      * {@link JsonLdProcessor} methods.
      *
-     * @param reader
-     *            The JSON-LD document in a Reader.
+     * @param reader The JSON-LD document in a Reader.
      * @return A JSON Object.
-     * @throws JsonParseException
-     *             If there was a JSON related error during parsing.
-     * @throws IOException
-     *             If there was an IO error during parsing.
+     * @throws JsonParseException If there was a JSON related error during parsing.
+     * @throws IOException        If there was an IO error during parsing.
      */
     public static Object fromReader(Reader reader) throws IOException {
         final JsonParser jp = JSON_FACTORY.createParser(reader);
@@ -127,15 +152,12 @@ public class JsonUtils {
      * can be used as input for the {@link JsonLdApi} and
      * {@link JsonLdProcessor} methods.
      *
-     * @param jp
-     *            The JSON-LD document in a {@link JsonParser}.
+     * @param jp The JSON-LD document in a {@link JsonParser}.
      * @return A JSON Object.
-     * @throws JsonParseException
-     *             If there was a JSON related error during parsing.
-     * @throws IOException
-     *             If there was an IO error during parsing.
+     * @throws JsonParseException If there was a JSON related error during parsing.
+     * @throws IOException        If there was an IO error during parsing.
      */
-    public static Object fromJsonParser(JsonParser jp) throws IOException {
+    static Object fromJsonParser(JsonParser jp) throws IOException {
         Object rval;
         final JsonToken initialToken = jp.nextToken();
 
@@ -163,12 +185,14 @@ public class JsonUtils {
             t = jp.nextToken();
         } catch (final JsonParseException ex) {
             throw new JsonParseException(jp,
-                    "Document contains more content after json-ld element - (possible mismatched {}?)",
+                    "Document contains more content after json-ld element - (possible mismatched "
+                            + "{}?)",
                     jp.getCurrentLocation());
         }
         if (t != null) {
             throw new JsonParseException(jp,
-                    "Document contains possible json content after the json-ld element - (possible mismatched {}?)",
+                    "Document contains possible json content after the json-ld element - "
+                            + "(possible mismatched {}?)",
                     jp.getCurrentLocation());
         }
         return rval;
@@ -178,15 +202,12 @@ public class JsonUtils {
      * Parses a JSON-LD document from a string to an object that can be used as
      * input for the {@link JsonLdApi} and {@link JsonLdProcessor} methods.
      *
-     * @param jsonString
-     *            The JSON-LD document as a string.
+     * @param jsonString The JSON-LD document as a string.
      * @return A JSON Object.
-     * @throws JsonParseException
-     *             If there was a JSON related error during parsing.
-     * @throws IOException
-     *             If there was an IO error during parsing.
+     * @throws JsonParseException If there was a JSON related error during parsing.
+     * @throws IOException        If there was an IO error during parsing.
      */
-    public static Object fromString(String jsonString) throws JsonParseException, IOException {
+    public static Object fromString(String jsonString) throws IOException {
         return fromReader(new StringReader(jsonString));
     }
 
@@ -194,13 +215,10 @@ public class JsonUtils {
      * Writes the given JSON-LD Object out to a String, using indentation and
      * new lines to improve readability.
      *
-     * @param jsonObject
-     *            The JSON-LD Object to serialize.
+     * @param jsonObject The JSON-LD Object to serialize.
      * @return A JSON document serialised to a String.
-     * @throws JsonGenerationException
-     *             If there is a JSON error during serialization.
-     * @throws IOException
-     *             If there is an IO error during serialization.
+     * @throws JsonGenerationException If there is a JSON error during serialization.
+     * @throws IOException             If there is an IO error during serialization.
      */
     public static String toPrettyString(Object jsonObject)
             throws JsonGenerationException, IOException {
@@ -212,13 +230,10 @@ public class JsonUtils {
     /**
      * Writes the given JSON-LD Object out to a String.
      *
-     * @param jsonObject
-     *            The JSON-LD Object to serialize.
+     * @param jsonObject The JSON-LD Object to serialize.
      * @return A JSON document serialised to a String.
-     * @throws JsonGenerationException
-     *             If there is a JSON error during serialization.
-     * @throws IOException
-     *             If there is an IO error during serialization.
+     * @throws JsonGenerationException If there is a JSON error during serialization.
+     * @throws IOException             If there is an IO error during serialization.
      */
     public static String toString(Object jsonObject) throws JsonGenerationException, IOException {
         final StringWriter sw = new StringWriter();
@@ -229,17 +244,13 @@ public class JsonUtils {
     /**
      * Writes the given JSON-LD Object out to the given Writer.
      *
-     * @param writer
-     *            The writer that is to receive the serialized JSON-LD object.
-     * @param jsonObject
-     *            The JSON-LD Object to serialize.
-     * @throws JsonGenerationException
-     *             If there is a JSON error during serialization.
-     * @throws IOException
-     *             If there is an IO error during serialization.
+     * @param writer     The writer that is to receive the serialized JSON-LD object.
+     * @param jsonObject The JSON-LD Object to serialize.
+     * @throws JsonGenerationException If there is a JSON error during serialization.
+     * @throws IOException             If there is an IO error during serialization.
      */
-    public static void write(Writer writer, Object jsonObject)
-            throws JsonGenerationException, IOException {
+    private static void write(Writer writer, Object jsonObject)
+            throws IOException {
         final JsonGenerator jw = JSON_FACTORY.createGenerator(writer);
         jw.writeObject(jsonObject);
     }
@@ -248,14 +259,10 @@ public class JsonUtils {
      * Writes the given JSON-LD Object out to the given Writer, using
      * indentation and new lines to improve readability.
      *
-     * @param writer
-     *            The writer that is to receive the serialized JSON-LD object.
-     * @param jsonObject
-     *            The JSON-LD Object to serialize.
-     * @throws JsonGenerationException
-     *             If there is a JSON error during serialization.
-     * @throws IOException
-     *             If there is an IO error during serialization.
+     * @param writer     The writer that is to receive the serialized JSON-LD object.
+     * @param jsonObject The JSON-LD Object to serialize.
+     * @throws JsonGenerationException If there is a JSON error during serialization.
+     * @throws IOException             If there is an IO error during serialization.
      */
     public static void writePrettyPrint(Writer writer, Object jsonObject)
             throws JsonGenerationException, IOException {
@@ -269,18 +276,14 @@ public class JsonUtils {
      * resolved from the JsonLdUrl, to an object that can be used as input for
      * the {@link JsonLdApi} and {@link JsonLdProcessor} methods.
      *
-     * @param url
-     *            The JsonLdUrl to resolve
-     * @param httpClient
-     *            The {@link CloseableHttpClient} to use to resolve the URL.
+     * @param url        The JsonLdUrl to resolve
+     * @param httpClient The {@link CloseableHttpClient} to use to resolve the URL.
      * @return A JSON Object.
-     * @throws JsonParseException
-     *             If there was a JSON related error during parsing.
-     * @throws IOException
-     *             If there was an IO error during parsing.
+     * @throws JsonParseException If there was a JSON related error during parsing.
+     * @throws IOException        If there was an IO error during parsing.
      */
     public static Object fromURL(java.net.URL url, CloseableHttpClient httpClient)
-            throws JsonParseException, IOException {
+            throws IOException {
         final String protocol = url.getProtocol();
         // We can only use the Apache HTTPClient for HTTP/HTTPS, so use the
         // native java client for the others
@@ -318,29 +321,22 @@ public class JsonUtils {
      * class for cases where servers do not interoperate correctly with Apache
      * HTTPClient.
      *
-     * @param url
-     *            The URL to access.
+     * @param url The URL to access.
      * @return The result, after conversion from JSON to a Java Object.
-     * @throws JsonParseException
-     *             If there was a JSON related error during parsing.
-     * @throws IOException
-     *             If there was an IO error during parsing.
+     * @throws JsonParseException If there was a JSON related error during parsing.
+     * @throws IOException        If there was an IO error during parsing.
      */
-    public static Object fromURLJavaNet(java.net.URL url) throws JsonParseException, IOException {
+    public static Object fromURLJavaNet(java.net.URL url) throws IOException {
         final HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
         urlConn.addRequestProperty("Accept", ACCEPT_HEADER);
 
-        final InputStream directStream = urlConn.getInputStream();
-
         final StringWriter output = new StringWriter();
-        try {
+        try (InputStream directStream = urlConn.getInputStream()) {
             IOUtils.copy(directStream, output, Charset.forName("UTF-8"));
         } finally {
-            directStream.close();
             output.flush();
         }
-        final Object context = JsonUtils.fromReader(new StringReader(output.toString()));
-        return context;
+        return JsonUtils.fromReader(new StringReader(output.toString()));
     }
 
     public static CloseableHttpClient getDefaultHttpClient() {
@@ -362,20 +358,19 @@ public class JsonUtils {
         final CacheConfig cacheConfig = CacheConfig.custom().setMaxCacheEntries(1000)
                 .setMaxObjectSize(1024 * 128).build();
 
-        final CloseableHttpClient result = CachingHttpClientBuilder.create()
+        return CachingHttpClientBuilder.create()
                 // allow caching
                 .setCacheConfig(cacheConfig)
                 // Wrap the local JarCacheStorage around a BasicHttpCacheStorage
                 .setHttpCacheStorage(new JarCacheStorage(null, cacheConfig,
                         new BasicHttpCacheStorage(cacheConfig)))
                 // Support compressed data
-                // http://hc.apache.org/httpcomponents-client-ga/tutorial/html/httpagent.html#d5e1238
+                // http://hc.apache.org/httpcomponents-client-ga/tutorial/html/httpagent
+                // .html#d5e1238
                 .addInterceptorFirst(new RequestAcceptEncoding())
                 .addInterceptorFirst(new ResponseContentEncoding())
                 .setRedirectStrategy(DefaultRedirectStrategy.INSTANCE)
                 // use system defaults for proxy etc.
                 .useSystemProperties().build();
-
-        return result;
     }
 }

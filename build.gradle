@@ -12,7 +12,7 @@ buildscript {
 
 plugins {
     id 'com.github.hierynomus.license' version '0.13.1'
-    id 'net.researchgate.release' version '2.4.0'
+    id 'net.researchgate.release' version '2.6.0'
     id 'io.codearte.nexus-staging' version '0.9.0'
 }
 
@@ -89,7 +89,7 @@ subprojects {
     }
 
     jacoco {
-        toolVersion = "0.7.6.201602180812"
+        toolVersion = "0.7.9"
     }
 
     license {
@@ -115,6 +115,7 @@ subprojects {
     }
 
     modifyPom {
+        //noinspection GroovyAssignabilityCheck
         project {
             name 'JSONLD-Java'
             description 'Json-LD core implementation'
@@ -182,7 +183,7 @@ configurations {
 
 
 dependencies {
-    buildToolsConfig "cool.pandora:pandora-build-tools:0.1.2"
+    buildToolsConfig "cool.pandora:pandora-build-tools:0.1.3"
 }
 
 task processBuildTools(type: Copy) {

@@ -35,7 +35,7 @@ import com.github.jsonldjava.core.RDFDatasetUtils;
 /**
  * NQuadTripleCallback.
  *
- * @author @tristan
+ * @author Tristan King
  * @author Peter Ansell p_ansell@yahoo.com
  */
 public class NQuadTripleCallback implements JsonLdTripleCallback {

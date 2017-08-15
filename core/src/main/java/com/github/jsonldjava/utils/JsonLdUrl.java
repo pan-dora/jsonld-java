@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 /**
  * JsonLdUrl.
  *
- * @author @tristan
+ * @author Tristan King
  * @author Peter Ansell p_ansell@yahoo.com
  */
 public class JsonLdUrl {

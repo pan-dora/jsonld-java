@@ -450,7 +450,7 @@ CHANGELOG
 =========
 
 ### 2017-07-11
-* Add injection of contexts directly into DocumentLoader (Patch by @ryankenney)
+* Add injection of contexts directly into DocumentLoader (Patch by Ryan Kenney)
 * Fix N-Quads content type (Patch by @NicolasRouquette)
 * Add JsonUtils.fromJsonParser (Patch by @dschulten)
 

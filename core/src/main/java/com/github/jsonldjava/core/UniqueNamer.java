@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * UniqueNamer.
  *
- * @author @tristan
+ * @author Tristan King
  * @author Peter Ansell p_ansell@yahoo.com
  */
 public class UniqueNamer {

@@ -39,9 +39,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 /**
  * DocumentLoader.
  *
- * @author @tristan
+ * @author Tristan King
  * @author Peter Ansell p_ansell@yahoo.com
- * @author @ryankenney
+ * @author Ryan Kenney
  */
 public class DocumentLoader {
 

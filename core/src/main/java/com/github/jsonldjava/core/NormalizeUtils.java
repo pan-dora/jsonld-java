@@ -47,7 +47,7 @@ import java.util.Map;
 /**
  * NormalizeUtils.
  *
- * @author @tristan
+ * @author Tristan King
  * @author Peter Ansell p_ansell@yahoo.com
  */
 class NormalizeUtils {

@@ -31,7 +31,7 @@ package com.github.jsonldjava.core;
 /**
  * JsonLdError.
  *
- * @author @tristan
+ * @author Tristan King
  * @author Peter Ansell p_ansell@yahoo.com
  */
 public class JsonLdError extends Exception {

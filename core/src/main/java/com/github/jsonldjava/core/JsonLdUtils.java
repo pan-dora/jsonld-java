@@ -37,7 +37,7 @@ import java.util.Map;
 /**
  * JsonLdUtils.
  *
- * @author @tristan
+ * @author Tristan King
  * @author Peter Ansell p_ansell@yahoo.com
  */
 class JsonLdUtils {

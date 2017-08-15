@@ -31,7 +31,7 @@ package com.github.jsonldjava.core;
 /**
  * RemoteDocument.
  *
- * @author @tristan
+ * @author Tristan King
  */
 public class RemoteDocument {
     public String getDocumentUrl() {

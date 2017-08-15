@@ -36,7 +36,7 @@ import com.github.jsonldjava.core.RDFParser;
 /**
  * NQuadRDFParser.
  *
- * @author @tristan
+ * @author Tristan King
  * @author Peter Ansell p_ansell@yahoo.com
  */
 public class NQuadRDFParser implements RDFParser {

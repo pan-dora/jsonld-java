@@ -31,7 +31,7 @@ package com.github.jsonldjava.core;
 /**
  * URI Constants used in the JSON-LD parser.
  *
- * @author @tristan
+ * @author Tristan King
  * @author Peter Ansell p_ansell@yahoo.com
  */
 public final class JsonLdConsts {

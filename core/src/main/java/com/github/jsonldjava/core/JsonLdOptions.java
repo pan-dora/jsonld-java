@@ -52,7 +52,8 @@ public class JsonLdOptions {
      * http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-expandContext
      */
     private Object expandContext = null;
-    /**
+
+     /**
      * http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-processingMode
      */
     private String processingMode = JSON_LD_1_0;
@@ -74,6 +75,7 @@ public class JsonLdOptions {
 
     Boolean useRdfType = false;
     Boolean useNativeTypes = false;
+    Boolean persistContext = null;
     private boolean produceGeneralizedRdf = false;
 
     public String getEmbed() {
@@ -161,6 +163,10 @@ public class JsonLdOptions {
 
     public Object getExpandContext() {
         return expandContext;
+    }
+
+    public Boolean persistContext() {
+        return persistContext;
     }
 
     public void setExpandContext(Object expandContext) {

@@ -30,7 +30,10 @@ public final class JsonLdConsts {
 
     public static final String TEXT_TURTLE = "text/turtle";
     public static final String APPLICATION_NQUADS = "application/n-quads"; // https://www.w3.org/TR/n-quads/#sec-mediatype
-
+    public static final String APPLICATION_JSONLD = "application/ld+json";
+    public static final String APPLICATION_JSON = "application/json";
+    public static final String JSONLD_CONTEXT_RELATION = "http://www.w3.org/ns/json-ld#context";
+    public static final String PERSISTENT_CONTEXT_PROPERTY = "http://permacontext.org#context";
     public static final String FLATTENED = "flattened";
     public static final String COMPACTED = "compacted";
     public static final String EXPANDED = "expanded";

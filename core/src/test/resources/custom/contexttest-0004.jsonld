@@ -1,0 +1,10 @@
+{
+  "@context": "http://xmlns.com/foaf/0.1/",
+  "@graph": [{
+    "@type": "Person",
+    "member": "_:b1"
+  }, {
+    "@id": "_:b1",
+    "@type": "Group"
+  }]
+}

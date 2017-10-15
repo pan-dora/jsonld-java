@@ -137,13 +137,16 @@ public class JsonLdProcessor {
         // 4)
         if (opts.getExpandContext() != null) {
             Object exCtx = opts.getExpandContext();
-            if (exCtx instanceof Map
-                    && ((Map<String, Object>) exCtx).containsKey(JsonLdConsts.CONTEXT)) {
+            if (exCtx instanceof Map && ((Map<String, Object>) exCtx).containsKey(JsonLdConsts.CONTEXT)) {
                 exCtx = ((Map<String, Object>) exCtx).get(JsonLdConsts.CONTEXT);
             }
             activeCtx = activeCtx.parse(exCtx);
         }
 
+        if (opts.persistContext() != null) {
+            Object context = ((Map<String, Object>) input).get(JsonLdConsts.CONTEXT);
+            ((Map<String, Object>) input).put(JsonLdConsts.PERSISTENT_CONTEXT_PROPERTY, context);
+        }
         // 5)
         // TODO: add support for getting a context from HTTP when content-type
         // is set to a jsonld compatable format
@@ -152,8 +155,8 @@ public class JsonLdProcessor {
         Object expanded = new JsonLdApi(opts).expand(activeCtx, input);
 
         // final step of Expansion Algorithm
-        if (expanded instanceof Map && ((Map) expanded).containsKey(JsonLdConsts.GRAPH)
-                && ((Map) expanded).size() == 1) {
+        if (expanded instanceof Map && ((Map) expanded).containsKey(JsonLdConsts.GRAPH) &&
+                ((Map) expanded).size() == 1) {
             expanded = ((Map<String, Object>) expanded).get(JsonLdConsts.GRAPH);
         } else if (expanded == null) {
             expanded = new ArrayList<Object>();

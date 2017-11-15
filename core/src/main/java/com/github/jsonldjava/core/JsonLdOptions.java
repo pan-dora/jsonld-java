@@ -74,6 +74,8 @@ public class JsonLdOptions {
 
     Boolean useRdfType = false;
     Boolean useNativeTypes = false;
+    Boolean useGraphKeyword = false;
+
     private boolean produceGeneralizedRdf = false;
 
     public String getEmbed() {
@@ -199,6 +201,13 @@ public class JsonLdOptions {
         this.useNativeTypes = useNativeTypes;
     }
 
+    public Boolean getUseGraphKeyword() {
+        return useGraphKeyword;
+    }
+
+    public void setUseGraphKeyword(Boolean setUseGraphKeyword) {
+        this.useGraphKeyword = useGraphKeyword;
+    }
     public boolean getProduceGeneralizedRdf() {
         return this.produceGeneralizedRdf;
     }

@@ -1,6 +1,8 @@
 package com.github.jsonldjava.core;
 
 import static com.github.jsonldjava.utils.Obj.newMap;
+import static com.github.jsonldjava.utils.Obj.newListOrderedMap;
+import static com.github.jsonldjava.utils.Obj.newMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 import com.github.jsonldjava.core.JsonLdError.Error;
 import com.github.jsonldjava.impl.NQuadRDFParser;
 import com.github.jsonldjava.impl.NQuadTripleCallback;
+import org.apache.commons.collections4.map.ListOrderedMap;
 
 /**
  * This class implements the <a href=
@@ -66,31 +69,35 @@ public class JsonLdProcessor {
         if (compacted instanceof List) {
             if (((List<Object>) compacted).isEmpty()) {
                 compacted = newMap();
-            } else {
+            } else if (opts.useGraphKeyword) {
                 final Map<String, Object> tmp = newMap();
                 // TODO: SPEC: doesn't specify to use vocab = true here
                 tmp.put(activeCtx.compactIri(JsonLdConsts.GRAPH, true), compacted);
                 compacted = tmp;
+            } else {
+                final Map<String, Object> tmp = newMap();
+                tmp.put(activeCtx.compactIri(null, true), compacted);
+                compacted = tmp;
             }
         }
+        Map<String, Object> orderedMap = newListOrderedMap();
+        orderedMap.putAll(((Map<String, Object>) compacted));
         if (compacted != null && context != null) {
-            // TODO: figure out if we can make "@context" appear at the start of
-            // the keySet
             if ((context instanceof Map && !((Map<String, Object>) context).isEmpty())
                     || (context instanceof List && !((List<Object>) context).isEmpty())) {
 
                 if (context instanceof List && ((List<Object>) context).size() == 1
                         && opts.getCompactArrays()) {
-                    ((Map<String, Object>) compacted).put(JsonLdConsts.CONTEXT,
+                    ((ListOrderedMap<String,Object>) orderedMap).put(0, JsonLdConsts.CONTEXT,
                             ((List<Object>) context).get(0));
                 } else {
-                    ((Map<String, Object>) compacted).put(JsonLdConsts.CONTEXT, context);
+                    ((ListOrderedMap<String,Object>) orderedMap).put(0, JsonLdConsts.CONTEXT, context);
                 }
             }
         }
 
         // 9)
-        return (Map<String, Object>) compacted;
+        return orderedMap;
     }
 
     /**
@@ -216,7 +223,7 @@ public class JsonLdProcessor {
             // 4.3)
             // TODO: SPEC doesn't specify that this should only be added if it
             // doesn't exists
-            if (!entry.containsKey(JsonLdConsts.GRAPH)) {
+            if (!entry.containsKey(JsonLdConsts.GRAPH) && opts.useGraphKeyword) {
                 entry.put(JsonLdConsts.GRAPH, new ArrayList<Object>());
             }
             final List<String> keys = new ArrayList<String>(graph.keySet());
@@ -335,10 +342,17 @@ public class JsonLdProcessor {
             tmp.add(compacted);
             compacted = tmp;
         }
-        final String alias = activeCtx.compactIri(JsonLdConsts.GRAPH);
-        final Map<String, Object> rval = activeCtx.serialize();
-        rval.put(alias, compacted);
+        final String alias;
 
+        final Map<String, Object> rval = activeCtx.serialize();
+        if (opts.useGraphKeyword) {
+            alias = activeCtx.compactIri(JsonLdConsts.GRAPH);
+            rval.put(alias, compacted);
+
+        } else {
+            alias = null;
+            rval.put(alias, compacted);
+        }
         final Set<Object> toPrune = opts.getPruneBlankNodeIdentifiers() ? blankNodeIdsToPrune(rval)
                 : Collections.emptySet();
         JsonLdUtils.removePreserveAndPrune(activeCtx, rval, opts, toPrune);

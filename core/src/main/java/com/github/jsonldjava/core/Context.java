@@ -291,9 +291,7 @@ public class Context extends LinkedHashMap<String, Object> {
      *
      * http://json-ld.org/spec/latest/json-ld-api/#create-term-definition
      *
-     * @param result
      * @param context
-     * @param key
      * @param defined
      * @throws JsonLdError
      */
@@ -555,7 +553,7 @@ public class Context extends LinkedHashMap<String, Object> {
      *            the IRI to compact.
      * @param value
      *            the value to check or null.
-     * @param relativeTo
+     * @param relativeToVocab
      *            options for how to compact IRIs: vocab: true to split
      *            after @vocab, false not to.
      * @param reverse

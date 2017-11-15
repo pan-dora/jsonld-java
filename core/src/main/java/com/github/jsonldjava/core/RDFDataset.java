@@ -15,6 +15,7 @@ import static com.github.jsonldjava.core.JsonLdUtils.isObject;
 import static com.github.jsonldjava.core.JsonLdUtils.isString;
 import static com.github.jsonldjava.core.JsonLdUtils.isValue;
 import static com.github.jsonldjava.utils.Obj.newMap;
+import static com.github.jsonldjava.utils.Obj.newMap;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -167,8 +168,6 @@ public class RDFDataset extends LinkedHashMap<String, Object> {
         /**
          * Converts an RDF triple object to a JSON-LD object.
          *
-         * @param o
-         *            the RDF triple object to convert.
          * @param useNativeTypes
          *            true to output native types, false not to.
          *

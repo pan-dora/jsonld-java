@@ -2,6 +2,7 @@ package com.github.jsonldjava.utils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.apache.commons.collections4.map.ListOrderedMap;
 
 public class Obj {
 
@@ -10,8 +11,17 @@ public class Obj {
      *
      * @return A new {@link Map} instance.
      */
+    public static Map<String, Object> newListOrderedMap() {
+        return new ListOrderedMap<>();
+    }
+
+    /**
+     * Helper function for creating maps and tuning them as necessary.
+     *
+     * @return A new {@link Map} instance.
+     */
     public static Map<String, Object> newMap() {
-        return new LinkedHashMap<String, Object>(4, 0.75f);
+        return new LinkedHashMap<>();
     }
 
     /**
